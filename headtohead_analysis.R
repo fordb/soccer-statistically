@@ -1,3 +1,6 @@
+# data includes all world cup matches INCLUDING qualifying games
+# hence the high number of games between oceania and asia
+
 library(plyr)
 
 setwd("~/Desktop/Soccer-Stat/wc-continent-headtohead")
@@ -34,9 +37,6 @@ d <- fix_continents("saudi-arabia", "asia")
 d <- fix_continents("australia", "oceania")
 d <- fix_continents("kazakhstan", "asia")
 
-# remove intra-continent games
-d <- subset(d, continent != opposition_continent)
-
 # remove duplicate games
 # first make unique key for matchups
 d$key1 <- paste(d$country, d$opposition, sep="_")
@@ -49,11 +49,30 @@ id.table <- table(d$key)
 d <- subset(d, key %in% names(id.table[id.table > 1]))
 d <- d[duplicated(d$key),]
 
-# clean up variables to make the key
-d$key <- d$key1 <- NULL
+# remove intra-continent games
+d <- subset(d, continent != opposition_continent)
 
-# analyze
+# clean up variables that made the key
+d$key <- d$key1 <- NULL
+# switch rows with continent = oceania to opposition_continent = oceania
+temp1 <- subset(d, continent == "oceania")
+temp1$tcontinent <- temp1$opposition_continent
+temp1$topposition_continent <- temp1$continent
+temp1$continent <- temp1$tcontinent
+temp1$opposition_continent <- temp1$topposition_continent
+temp1$topposition_continent <- temp1$tcontinent <- NULL
+d <- subset(d, continent != "oceania")
+d <- rbind(d, temp1)
+
+# analysis
 breakdown <- ddply(d, .(continent, opposition_continent), summarize, 
                    gp = sum(played), wins = sum(wins), draws = sum(draws),
                    losses = sum(losses), gf = sum(gf), ga = sum(ga))
+# clean up extraneous dataframes
+rm(id.table, sort_d, temp1)
 
+# create some new variables
+breakdown <- breakdown[order(-breakdown$gp),]
+breakdown$gf_game <- round(breakdown$gf / breakdown$gp,3)
+breakdown$ga_game <- round(breakdown$ga / breakdown$gp,3)
+breakdown$win_pct <- round((breakdown$wins / breakdown$gp) + (1/3)*(breakdown$draws / breakdown$gp),3)
