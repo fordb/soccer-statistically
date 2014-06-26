@@ -94,7 +94,7 @@ full_dictionary = dict(asia_dict.items() + africa_dict.items() + concacaf_dict.i
 ### loop through all countries head to head, by confederation ###
 # asia
 for a in asia:
-    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/"
+    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/comp/978"
     content = urllib2.urlopen(url).read()
     soup = BeautifulSoup(content)
     games = soup.find_all('tr')
@@ -111,7 +111,7 @@ for a in asia:
 
 # africa
 for a in africa:
-    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/"
+    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/comp/978"
     content = urllib2.urlopen(url).read()
     soup = BeautifulSoup(content)
     games = soup.find_all('tr')
@@ -128,7 +128,7 @@ for a in africa:
 
 # concacaf
 for a in concacaf:
-    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/"
+    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/comp/978"
     content = urllib2.urlopen(url).read()
     soup = BeautifulSoup(content)
     games = soup.find_all('tr')
@@ -145,7 +145,7 @@ for a in concacaf:
 
 # south america
 for a in southamerica:
-    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/"
+    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/comp/978"
     content = urllib2.urlopen(url).read()
     soup = BeautifulSoup(content)
     games = soup.find_all('tr')
@@ -162,7 +162,7 @@ for a in southamerica:
 
 # oceania
 for a in oceania:
-    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/"
+    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/comp/978"
     content = urllib2.urlopen(url).read()
     soup = BeautifulSoup(content)
     games = soup.find_all('tr')
@@ -179,7 +179,7 @@ for a in oceania:
 
 # europe
 for a in europe:
-    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/"
+    url = "http://www.11v11.com/teams/" + str(a) + "/tab/stats/comp/978"
     content = urllib2.urlopen(url).read()
     soup = BeautifulSoup(content)
     games = soup.find_all('tr')
