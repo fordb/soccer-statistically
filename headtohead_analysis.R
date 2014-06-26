@@ -10,13 +10,32 @@ d <- read.csv("raw.csv", stringsAsFactor=FALSE)
 # most likely on the website's end
 d <- d[complete.cases(d),]
 
-countries <- unique(d$country)
-d <- subset(d, opposition %in% countries)
+# fix some faulty continent labels
+fix_continents <- function(c, cont) {
+  t1 <- subset(d, country == c)
+  t1$continent <- cont
+  t2 <- subset(d, opposition == c)
+  if(nrow(t2) > 0) {
+    t2$opposition_continent <- cont
+    t <- rbind(t1, t2)
+  } else {
+    t <- t1
+  }
+  d1 <- subset(subset(d, country != c), opposition != c)
+  d1 <- rbind(d1, t)
+  return(d1)
+}
+
+# countries with faulty continent labels
+# do this by hand
+sort_d <- d[order(d$country),]
+# australia, saudi-arabia, kazakhstan
+d <- fix_continents("saudi-arabia", "asia")
+d <- fix_continents("australia", "oceania")
+d <- fix_continents("kazakhstan", "asia")
 
 # remove intra-continent games
 d <- subset(d, continent != opposition_continent)
-subset(subset(d, country == "algeria"), opposition == "bulgaria")
-subset(subset(d, country == "bulgaria"), opposition == "algeria")
 
 # remove duplicate games
 # first make unique key for matchups
@@ -30,7 +49,6 @@ id.table <- table(d$key)
 d <- subset(d, key %in% names(id.table[id.table > 1]))
 d <- d[duplicated(d$key),]
 
-
 # clean up variables to make the key
 d$key <- d$key1 <- NULL
 
@@ -38,3 +56,4 @@ d$key <- d$key1 <- NULL
 breakdown <- ddply(d, .(continent, opposition_continent), summarize, 
                    gp = sum(played), wins = sum(wins), draws = sum(draws),
                    losses = sum(losses), gf = sum(gf), ga = sum(ga))
+
