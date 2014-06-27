@@ -2,7 +2,6 @@
 # hence the high number of games between oceania and asia
 
 library(plyr)
-
 setwd("~/Desktop/Soccer-Stat/wc-continent-headtohead")
 
 # read in data, strings are read as characters not factors
@@ -76,3 +75,6 @@ breakdown <- breakdown[order(-breakdown$gp),]
 breakdown$gf_game <- round(breakdown$gf / breakdown$gp,3)
 breakdown$ga_game <- round(breakdown$ga / breakdown$gp,3)
 breakdown$win_pct <- round((breakdown$wins / breakdown$gp) + (1/3)*(breakdown$draws / breakdown$gp),3)
+breakdown$matchup <- paste(breakdown$continent, breakdown$opposition_continent, sep = " v ")
+# save data
+saveRDS(breakdown, file = "breakdown.Rda")
