@@ -26,6 +26,14 @@ breakdown <- ddply(data, .(c1, c2), summarize,
                    gp = length(home), gf = sum(home_score), ga = sum(away_score),
                    wins = sum(win), draws = sum(draw), losses = sum(loss))
 
-breakdown$gf_game <- round(breakdown$gf / breakdown$gp,3)
-breakdown$ga_game <- round(breakdown$ga / breakdown$gp,3)
-
+breakdown$gf_game <- round(breakdown$gf / breakdown$gp,2)
+breakdown$ga_game <- round(breakdown$ga / breakdown$gp,2)
+breakdown$home_continent <- breakdown$c1
+breakdown$away_continent <-breakdown$c2
+breakdown$c1 <- breakdown$c2 <- NULL
+library(gridExtra)
+breakdown <- breakdown[c("home_continent", "away_continent", "gp", "gf", "ga", "wins", "draws", "losses",
+                         "gf_game", "ga_game")]
+grid.table(breakdown)
+dev.copy(png,"wc_2014.png",width=8,height=6,units="in",res=100)
+dev.off()
