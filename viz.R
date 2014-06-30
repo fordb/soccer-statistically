@@ -15,6 +15,7 @@ ggplot(b, aes(x = opposition_continent)) +
   theme(legend.position = "none") + xlab("") + ylab("GA ---- GF") + 
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, space = "rgb") + 
   ggtitle("Europe") + ylim(-2.5,2.5)
+ggsave(file="europe.png")
 
 # function to get the data in the correct format for graphing
 subsetting <- function(cont) {
@@ -36,6 +37,7 @@ ggplot(t, aes(x = opposition_continent)) +
   theme(legend.position = "none") + xlab("") + ylab("GA ---- GF") + 
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, space = "rgb") + 
   ggtitle("CONCACAF") + ylim(-3,3)
+ggsave(file="concacaf.png")
 
 # and africa
 t <- subsetting("africa")
@@ -45,6 +47,7 @@ ggplot(t, aes(x = opposition_continent)) +
   theme(legend.position = "none") + xlab("") + ylab("GA ---- GF") + 
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, space = "rgb") + 
   ggtitle("Africa") + ylim(-3,3)
+ggsave(file="africa.png")
 
 # and asia
 t <- subsetting("asia")
@@ -54,6 +57,7 @@ ggplot(t, aes(x = opposition_continent)) +
   theme(legend.position = "none") + xlab("") + ylab("GA ---- GF") + 
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, space = "rgb") + 
   ggtitle("Asia") + ylim(-3,3)
+ggsave(file="asia.png")
 
 # and oceania
 t <- subsetting("oceania")
@@ -63,3 +67,4 @@ ggplot(t, aes(x = opposition_continent)) +
   theme(legend.position = "none") + xlab("") + ylab("GA ---- GF") + 
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, space = "rgb") + 
   ggtitle("Oceania") + ylim(-3,3)
+ggsave(file="oceania.png")

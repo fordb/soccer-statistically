@@ -1,3 +1,5 @@
+# DATA NEEDS TO BE UPDATED FOR THE PAST WEEK
+
 library(plyr)
 
 setwd("~/Desktop/Soccer-Stat/wc-continent-headtohead")
@@ -26,3 +28,4 @@ breakdown <- ddply(data, .(c1, c2), summarize,
 
 breakdown$gf_game <- round(breakdown$gf / breakdown$gp,3)
 breakdown$ga_game <- round(breakdown$ga / breakdown$gp,3)
+
