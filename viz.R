@@ -68,3 +68,13 @@ ggplot(t, aes(x = opposition_continent)) +
   scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, space = "rgb") + 
   ggtitle("Oceania") + ylim(-3,3)
 ggsave(file="oceania.png")
+
+# and south america
+t <- subsetting("southamerica")
+ggplot(t, aes(x = opposition_continent)) + 
+  geom_bar(data = subset(t, variable == "gf_game"), aes(y = value, fill = value), stat="identity") +
+  geom_bar(data = subset(t, variable == "ga_game"), aes(y=-value, fill=-value), stat = "identity") +
+  theme(legend.position = "none") + xlab("") + ylab("GA ---- GF") + 
+  scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0, space = "rgb") + 
+  ggtitle("South America") + ylim(-3,3)
+ggsave(file="southamerica.png")
