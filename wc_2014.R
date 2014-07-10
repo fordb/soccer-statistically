@@ -5,6 +5,13 @@ library(plyr)
 setwd("~/Desktop/Soccer-Stat/wc-continent-headtohead")
 data <- read.csv("wc_2014_headtohead.csv", stringsAsFactors = FALSE)
 
+# change "Columbia" to "Colombia"
+d1 <- subset(data, home == "Columbia")
+d1$home <- "Colombia"
+d2 <- subset(data, away == "Columbia")
+d2$away <- "Colombia"
+data <-as.data.frame(rbind(subset(subset(data, home != "Columbia"), away != "Columbia"), d1, d2))
+
 temp <- as.data.frame(model.matrix(home_score ~ result, data))
 temp$"(Intercept)" <- NULL
 temp$resultd <- ifelse(temp$resultl == 1, 0, ifelse(temp$resultw == 1, 0, 1))
