@@ -41,6 +41,4 @@ breakdown$c1 <- breakdown$c2 <- NULL
 library(gridExtra)
 breakdown <- breakdown[c("home_continent", "away_continent", "gp", "gf", "ga", "wins", "draws", "losses",
                          "gf_game", "ga_game")]
-grid.table(breakdown)
-dev.copy(png,"wc_2014.png",width=8,height=6,units="in",res=100)
-dev.off()
+saveRDS(breakdown, file = "wc2014_breakdown.Rda")
