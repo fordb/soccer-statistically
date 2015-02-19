@@ -96,7 +96,7 @@ for n in range(11):
         try:
             twitter = str(twitters[c]).split('twitter.com/')[1].split('" target')[0].lstrip().rstrip()
         except IndexError:
-            twitter = 'No Twitter'
+            twitter = 'Null'
 
         insert_data = """
             insert into players
@@ -168,11 +168,7 @@ for n in range(37):
         try:
             twitter = str(twitters[c]).split('twitter.com/')[1].split('" target')[0].lstrip().rstrip()
         except IndexError:
-            twitter = 'No Twitter'
-        try:
-            twitter = str(twitters[c]).split('twitter.com/')[1].split('" target')[0].lstrip().rstrip()
-        except IndexError:
-            twitter = 'No Twitter'
+            twitter = 'Null'
 
         insert_data = """
             insert into players
