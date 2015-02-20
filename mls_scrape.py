@@ -1,6 +1,7 @@
 import MySQLdb
 import sys
 from unidecode import unidecode
+import uuid
 
 db = MySQLdb.connect(host="localhost", user="root", db="soccer_stat")
 cur = db.cursor()
@@ -27,7 +28,7 @@ def players():
         cur.execute('drop table if exists players;')
         create_table = """
             create table players (
-                player_id int not null auto_increment primary key,
+                player_id char(36) primary key,
                 number smallint,
                 position varchar(5),
                 name varchar(30),
@@ -94,11 +95,12 @@ def players():
                     twitter = str(twitters[c]).split('twitter.com/')[1].split('" target')[0].lstrip().rstrip()
                 except IndexError:
                     twitter = 'NULL'
-
+                p_id = uuid.uuid4()
                 insert_data = """
                     insert into players
-                        (number, position, name, club, age, height, weight, country, active, twitter)
+                        (player_id, number, position, name, club, age, height, weight, country, active, twitter)
                         values (
+                            '{id}',
                             {num},
                             '{position}',
                             '{name}',
@@ -110,7 +112,7 @@ def players():
                             '{active}',
                             '{twitter}'
                             );
-                """.format(num=number, position=position, name=name, club=club, age=age, height=height, weight=weight, country=country, active=active, twitter=twitter)
+                """.format(id=p_id, num=number, position=position, name=name, club=club, age=age, height=height, weight=weight, country=country, active=active, twitter=twitter)
                 cur.execute(insert_data)
 
         # inactive players only
@@ -167,10 +169,12 @@ def players():
                 except IndexError:
                     twitter = 'NULL'
 
+                p_id = uuid.uuid4()
                 insert_data = """
                     insert into players
-                        (number, position, name, club, age, height, weight, country, active, twitter)
+                        (player_id, number, position, name, club, age, height, weight, country, active, twitter)
                         values (
+                            '{id}',
                             {num},
                             '{position}',
                             '{name}',
@@ -182,7 +186,7 @@ def players():
                             '{active}',
                             '{twitter}'
                             );
-                """.format(num=number, position=position, name=name, club=club, age=age, height=height, weight=weight, country=country, active=active, twitter=twitter)
+                """.format(id=p_id, num=number, position=position, name=name, club=club, age=age, height=height, weight=weight, country=country, active=active, twitter=twitter)
                 cur.execute(insert_data)
 
 
@@ -190,7 +194,7 @@ def seasons():
     cur.execute('drop table if exists seasons;')
     create_table = """
         create table seasons (
-            player_id int not null auto_increment primary key,
+            player_id char(36) primary key,
             year int,
             club varchar(30),
             position varchar(5),
@@ -242,10 +246,12 @@ def seasons():
                 gp90 = soup.find('tbody').findAll('td')[row+14].contents[0]
                 scoring_pct = soup.find('tbody').findAll('td')[row+15].contents[0]
                 temp_name = name
+                p_id = uuid.uuid4()
                 insert_data = """
                         insert into seasons
-                            (year, club, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
+                            (player_id, year, club, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                             values (
+                                '{id}',
                                 {year},
                                 '{club}',
                                 '{pos}',
@@ -263,7 +269,7 @@ def seasons():
                                 {gp90},
                                 {scoring_pct}
                                 );
-                """.format(year=y, club=club, pos=pos, gp=gp, gs=gs, mins=mins, goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
+                """.format(id=p_id, year=y, club=club, pos=pos, gp=gp, gs=gs, mins=mins, goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
                 cur.execute(insert_data)
             if temp_name is None:
                 break
