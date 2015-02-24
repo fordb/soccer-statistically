@@ -25,7 +25,7 @@ opener = urllib2.build_opener(proxy_support)
 player_dict = {}
 
 
-def players():
+def active_players():
         # get player data
         cur.execute('drop table if exists players;')
         create_table = """
@@ -118,6 +118,8 @@ def players():
                 """.format(id=p_id, num=number, position=position, name=name, club=club, age=age, height=height, weight=weight, country=country, active=active, twitter=twitter)
                 cur.execute(insert_data)
 
+
+def inactive_players():
         # inactive players only
         for n in range(37):
             print >>sys.stderr, '[{time}] Running page {n}...'.format(time=datetime.datetime.now(), n=n)
@@ -200,6 +202,7 @@ def create_seasons():
         create table seasons (
             player_id char(36),
             year int,
+            type varchar(10),
             club varchar(30),
             position varchar(5),
             gp int,
@@ -219,8 +222,8 @@ def create_seasons():
     cur.execute(create_table)
 
 
-def seasons(y):
-    print >>sys.stderr, '[{time}] Running year {y}...'.format(time=datetime.datetime.now(), y=y)
+def regular_seasons(y):
+    print >>sys.stderr, '[{time}] Running regular season year {y}...'.format(time=datetime.datetime.now(), y=y)
     # regular season field players
     first_name = None
     for p in range(50):
@@ -235,7 +238,6 @@ def seasons(y):
                 break
             if row == 0:
                 first_name = name
-            name
             club = soup.find('tbody').findAll('td')[row+1].contents[0]
             pos = soup.find('tbody').findAll('td')[row+2].contents[0]
             gp = soup.find('tbody').findAll('td')[row+3].contents[0]
@@ -279,6 +281,7 @@ def seasons(y):
                         values (
                             '{id}',
                             {year},
+                            'regular'
                             '{club}',
                             '{pos}',
                             {gp},
@@ -301,10 +304,83 @@ def seasons(y):
             break
 
 
+def post_seasons(y):
+    print >>sys.stderr, '[{time}] Running playoffs year {y}...'.format(time=datetime.datetime.now(), y=y)
+    # playoff field players
+    url = 'http://www.mlssoccer.com/stats/season?season_year={year}&season_type=PS&team=ALL&group=GOALS&op=Search&form_id=mls_stats_individual_form'.format(year=y)
+    page = opener.open(url).read()
+    soup = BeautifulSoup(page)
+    length = len(soup.find('tbody').findAll('td'))
+    for row in range(0, length, 15):
+        name = soup.find('tbody').findAll('a')[row/15].contents[0]
+        pos = soup.find('tbody').findAll('td')[row+1].contents[0]
+        gp = soup.find('tbody').findAll('td')[row+2].contents[0]
+        gs = soup.find('tbody').findAll('td')[row+3].contents[0]
+        mins = soup.find('tbody').findAll('td')[row+4].contents[0]
+        goals = soup.find('tbody').findAll('td')[row+5].contents[0]
+        assists = soup.find('tbody').findAll('td')[row+6].contents[0]
+        shots = soup.find('tbody').findAll('td')[row+7].contents[0]
+        sog = soup.find('tbody').findAll('td')[row+8].contents[0]
+        gwg = soup.find('tbody').findAll('td')[row+9].contents[0]
+        pkg_a = soup.find('tbody').findAll('td')[row+10].contents[0]
+        home_goals = soup.find('tbody').findAll('td')[row+11].contents[0]
+        away_goals = soup.find('tbody').findAll('td')[row+12].contents[0]
+        gp90 = soup.find('tbody').findAll('td')[row+13].contents[0]
+        scoring_pct = soup.find('tbody').findAll('td')[row+14].contents[0]
+        try:
+            p_id = player_dict[name.lower().replace(" ", "")]
+        except KeyError:
+            p_id = uuid.uuid4()
+            insert_new_player = """
+                insert into players
+                    (player_id, number, position, name, club, age, height, weight, country, active, twitter)
+                    values (
+                        '{id}',
+                        NULL,
+                        NULL,
+                        '{name}',
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL
+                        );
+            """.format(id=p_id, name=name)
+        insert_data = """
+                insert into seasons
+                    (player_id, year, type, club, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
+                    values (
+                        '{id}',
+                        {year},
+                        'post',
+                        NULL,
+                        '{pos}',
+                        {gp},
+                        {gs},
+                        {mins},
+                        {goals},
+                        {assists},
+                        {shots},
+                        {sog},
+                        {gwg},
+                        '{pkg_a}',
+                        {home_goals},
+                        {away_goals},
+                        {gp90},
+                        {scoring_pct}
+                        );
+        """.format(id=p_id, year=y, pos=pos, gp=gp, gs=gs, mins=mins, goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
+        cur.execute(insert_data)
+
+
 def main():
-    players()
+    # active_players()
+    # inactive_players()
     create_seasons()
-    seasons(2014)
+    # regular_seasons(2014)
+    post_seasons(2014)
     # seasons(2013)
     # seasons(2012)
     # seasons(2011)
