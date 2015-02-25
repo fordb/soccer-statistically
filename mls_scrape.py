@@ -15,6 +15,32 @@ opener = urllib2.build_opener(proxy_support)
 
 player_dict = {}
 team_dict = {}
+league_dict = {}
+
+
+def create_leagues():
+    cur.execute('drop table if exists leagues;')
+    create_table = """
+        create table leagues (
+            league_id char(36),
+            short_name varchar(5),
+            long_name varchar(30),
+            country varchar(30));
+    """
+    cur.execute(create_table)
+
+    l_id = uuid.uuid4()
+    insert_data = """
+        insert into leagues
+            (league_id, short_name, long_name, country)
+            values (
+                '{id}',
+                'MLS',
+                'Major League Soccer',
+                'USA')
+    """.format(id=l_id)
+    cur.execute(insert_data)
+    league_dict['MLS'] = l_id
 
 
 def create_club_seasons():
@@ -482,16 +508,18 @@ def player_post_seasons(y):
 
 def main():
 
-    create_club_seasons()
-    team_regular_seasons(2014)
-    team_post_seasons(2014)
+    create_leagues()
 
-    active_players()
-    inactive_players()
+    # create_club_seasons()
+    # team_regular_seasons(2014)
+    # team_post_seasons(2014)
 
-    create_player_seasons()
-    player_regular_seasons(2014)
-    player_post_seasons(2014)
+    # active_players()
+    # inactive_players()
+
+    # create_player_seasons()
+    # player_regular_seasons(2014)
+    # player_post_seasons(2014)
 
     db.commit()
 
