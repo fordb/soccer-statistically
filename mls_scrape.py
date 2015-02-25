@@ -2,27 +2,132 @@ import MySQLdb
 import sys
 from unidecode import unidecode
 import uuid
-
-db = MySQLdb.connect(host="localhost", user="root", db="soccer_stat")
-cur = db.cursor()
-
-
-# team (regular and post, by year) stats
-url = 'http://www.mlssoccer.com/stats/team?season_year=2014&season_type=REG&op=Search&form_id=mls_stats_team_form'
-
-# boxscore
-url = 'http://matchcenter.mlssoccer.com/matchcenter/2014-10-04-vancouver-whitecaps-fc-vs-fc-dallas/boxscore'
-
-
 from bs4 import BeautifulSoup
 import re
 import urllib2
 import datetime
 
+db = MySQLdb.connect(host="localhost", user="root", db="soccer_stat")
+cur = db.cursor()
+
 proxy_support = urllib2.ProxyHandler({})
 opener = urllib2.build_opener(proxy_support)
 
 player_dict = {}
+team_dict = {}
+
+
+def create_club_seasons():
+    cur.execute('drop table if exists club_seasons;')
+    create_table = """
+        create table club_seasons (
+            team_id char(36),
+            year int,
+            type varchar(10),
+            club varchar(30),
+            gp int,
+            goals int,
+            assists int,
+            shots int,
+            sog int,
+            fc int,
+            fs int,
+            offsides int,
+            corners int,
+            pkg int,
+            pka int);
+    """
+    cur.execute(create_table)
+
+
+def team_regular_seasons(y):
+    print >>sys.stderr, '[{time}] Running regular season teams year {y}...'.format(time=datetime.datetime.now(), y=y)
+    url = 'http://www.mlssoccer.com/stats/team?season_year={year}&season_type=REG&op=Search&form_id=mls_stats_team_form'.format(year=y)
+    page = opener.open(url).read()
+    soup = BeautifulSoup(page)
+    length = len(soup.find('tbody').findAll('td'))
+    for row in range(0, length, 12):
+        club = soup.find('tbody').findAll('td', attrs={'class': 'club-col'})[row/12].contents[0]
+        gp = soup.find('tbody').findAll('td')[row+1].contents[0]
+        goals = soup.find('tbody').findAll('td')[row+2].contents[0]
+        assists = soup.find('tbody').findAll('td')[row+3].contents[0]
+        shots = soup.find('tbody').findAll('td')[row+4].contents[0]
+        sog = soup.find('tbody').findAll('td')[row+5].contents[0]
+        fc = soup.find('tbody').findAll('td')[row+6].contents[0]
+        fs = soup.find('tbody').findAll('td')[row+7].contents[0]
+        offsides = soup.find('tbody').findAll('td')[row+8].contents[0]
+        corners = soup.find('tbody').findAll('td')[row+9].contents[0]
+        pkg = soup.find('tbody').findAll('td')[row+10].contents[0]
+        pka = soup.find('tbody').findAll('td')[row+11].contents[0]
+        t_id = uuid.uuid4()
+
+        insert_data = """
+                insert into club_seasons
+                    (team_id, year, type, club, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka)
+                    values (
+                        '{id}',
+                        {year},
+                        'regular',
+                        '{club}',
+                        {gp},
+                        {goals},
+                        {assists},
+                        {shots},
+                        {sog},
+                        {fc},
+                        {fs},
+                        {offsides},
+                        {corners},
+                        {pkg},
+                        {pka}
+                        );
+        """.format(id=t_id, year=y, club=club, gp=gp, goals=goals, assists=assists, shots=shots, sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners, pkg=pkg, pka=pka)
+        cur.execute(insert_data)
+
+
+def team_post_seasons(y):
+    print >>sys.stderr, '[{time}] Running postseason teams year {y}...'.format(time=datetime.datetime.now(), y=y)
+    url = 'http://www.mlssoccer.com/stats/team?season_year={year}&season_type=PS&op=Search&form_id=mls_stats_team_form'.format(year=y)
+    page = opener.open(url).read()
+    soup = BeautifulSoup(page)
+    length = len(soup.find('tbody').findAll('td'))
+    for row in range(0, length, 12):
+        club = soup.find('tbody').findAll('td', attrs={'class': 'club-col'})[row/12].contents[0]
+        gp = soup.find('tbody').findAll('td')[row+1].contents[0]
+        goals = soup.find('tbody').findAll('td')[row+2].contents[0]
+        assists = soup.find('tbody').findAll('td')[row+3].contents[0]
+        shots = soup.find('tbody').findAll('td')[row+4].contents[0]
+        sog = soup.find('tbody').findAll('td')[row+5].contents[0]
+        fc = soup.find('tbody').findAll('td')[row+6].contents[0]
+        fs = soup.find('tbody').findAll('td')[row+7].contents[0]
+        offsides = soup.find('tbody').findAll('td')[row+8].contents[0]
+        corners = soup.find('tbody').findAll('td')[row+9].contents[0]
+        pkg = soup.find('tbody').findAll('td')[row+10].contents[0]
+        pka = soup.find('tbody').findAll('td')[row+11].contents[0]
+        t_id = uuid.uuid4()
+
+        insert_data = """
+                insert into club_seasons
+                    (team_id, year, type, club, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka)
+                    values (
+                        '{id}',
+                        {year},
+                        'post',
+                        '{club}',
+                        {gp},
+                        {goals},
+                        {assists},
+                        {shots},
+                        {sog},
+                        {fc},
+                        {fs},
+                        {offsides},
+                        {corners},
+                        {pkg},
+                        {pka}
+                        );
+        """.format(id=t_id, year=y, club=club, gp=gp, goals=goals, assists=assists, shots=shots, sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners, pkg=pkg, pka=pka)
+        cur.execute(insert_data)
 
 
 def active_players():
@@ -196,10 +301,10 @@ def inactive_players():
                 cur.execute(insert_data)
 
 
-def create_seasons():
-    cur.execute('drop table if exists seasons;')
+def create_player_seasons():
+    cur.execute('drop table if exists player_seasons;')
     create_table = """
-        create table seasons (
+        create table player_seasons (
             player_id char(36),
             year int,
             type varchar(10),
@@ -222,7 +327,7 @@ def create_seasons():
     cur.execute(create_table)
 
 
-def regular_seasons(y):
+def player_regular_seasons(y):
     print >>sys.stderr, '[{time}] Running regular season year {y}...'.format(time=datetime.datetime.now(), y=y)
     # regular season field players
     first_name = None
@@ -276,7 +381,7 @@ def regular_seasons(y):
                             );
                 """.format(id=p_id, name=name)
             insert_data = """
-                    insert into seasons
+                    insert into player_seasons
                         (player_id, year, club, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                         values (
                             '{id}',
@@ -304,7 +409,7 @@ def regular_seasons(y):
             break
 
 
-def post_seasons(y):
+def player_post_seasons(y):
     print >>sys.stderr, '[{time}] Running playoffs year {y}...'.format(time=datetime.datetime.now(), y=y)
     # playoff field players
     url = 'http://www.mlssoccer.com/stats/season?season_year={year}&season_type=PS&team=ALL&group=GOALS&op=Search&form_id=mls_stats_individual_form'.format(year=y)
@@ -349,7 +454,7 @@ def post_seasons(y):
                         );
             """.format(id=p_id, name=name)
         insert_data = """
-                insert into seasons
+                insert into player_seasons
                     (player_id, year, type, club, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                     values (
                         '{id}',
@@ -376,27 +481,18 @@ def post_seasons(y):
 
 
 def main():
-    # active_players()
-    # inactive_players()
-    create_seasons()
-    # regular_seasons(2014)
-    post_seasons(2014)
-    # seasons(2013)
-    # seasons(2012)
-    # seasons(2011)
-    # seasons(2010)
-    # seasons(2009)
-    # seasons(2008)
-    # seasons(2007)
-    # seasons(2006)
-    # seasons(2005)
-    # seasons(2004)
-    # seasons(2003)
-    # seasons(2002)
-    # seasons(2001)
-    # seasons(2000)
-    # seasons(1999)
-    # seasons(1998)
+
+    create_club_seasons()
+    team_regular_seasons(2014)
+    team_post_seasons(2014)
+
+    active_players()
+    inactive_players()
+
+    create_player_seasons()
+    player_regular_seasons(2014)
+    player_post_seasons(2014)
+
     db.commit()
 
     cur.close()
