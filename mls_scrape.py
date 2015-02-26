@@ -194,7 +194,7 @@ def active_players():
             name varchar(30),
             club_id char(36),
             age smallint,
-            height varchar(5),
+            height int,
             weight smallint,
             country varchar(50),
             active varchar(10),
@@ -242,9 +242,15 @@ def active_players():
             if age == '':
                 age = 'NULL'
             height = unidecode(unicode(str(heights[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            height = height[:-3].replace("'", "''").replace("\\", "")
             if height == '':
                 height = 'NULL'
+            else:
+                height = height.replace("'", "''")
+                feet = int(height[0])
+                try:
+                    inches = int(re.findall('[\d+]', height)[1])
+                except IndexError:
+                    inches = 0
             weight = unidecode(unicode(str(weights[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
             if weight == '':
                 weight = 'NULL'
@@ -288,13 +294,13 @@ def active_players():
                         '{name}',
                         '{c_id}',
                         {age},
-                        '{height}',
+                        {height},
                         {weight},
                         '{country}',
                         '{active}',
                         '{twitter}'
                         );
-            """.format(id=p_id, num=number, position=position, name=name, c_id=c_id, age=age, height=height, weight=weight, country=country, active=active, twitter=twitter)
+            """.format(id=p_id, num=number, position=position, name=name, c_id=c_id, age=age, height=(feet*12)+inches, weight=weight, country=country, active=active, twitter=twitter)
             cur.execute(insert_data)
 
 
@@ -338,9 +344,15 @@ def inactive_players():
             if age == '':
                 age = 'NULL'
             height = unidecode(unicode(str(heights[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            height = height[:-3].replace("'", "''").replace("\\", "")
             if height == '':
                 height = 'NULL'
+            else:
+                height = height.replace("'", "''")
+                feet = int(height[0])
+                try:
+                    inches = int(re.findall('[\d+]', height)[1])
+                except IndexError:
+                    inches = 0
             weight = unidecode(unicode(str(weights[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
             if weight == '':
                 weight = 'NULL'
@@ -384,13 +396,13 @@ def inactive_players():
                         '{name}',
                         '{c_id}',
                         {age},
-                        '{height}',
+                        {height},
                         {weight},
                         '{country}',
                         '{active}',
                         '{twitter}'
                         );
-            """.format(id=p_id, num=number, position=position, name=name, c_id=c_id, age=age, height=height, weight=weight, country=country, active=active, twitter=twitter)
+            """.format(id=p_id, num=number, position=position, name=name, c_id=c_id, age=age, height=(feet*12)+inches, weight=weight, country=country, active=active, twitter=twitter)
             cur.execute(insert_data)
 
 
@@ -586,6 +598,14 @@ def main():
     create_club_seasons()
     club_regular_seasons(2014)
     club_post_seasons(2014)
+    club_regular_seasons(2013)
+    club_post_seasons(2013)
+    club_regular_seasons(2012)
+    club_post_seasons(2012)
+    club_regular_seasons(2011)
+    club_post_seasons(2011)
+    club_regular_seasons(2010)
+    club_post_seasons(2010)
 
     active_players()
     inactive_players()
@@ -593,6 +613,14 @@ def main():
     create_player_seasons()
     player_regular_seasons(2014)
     player_post_seasons(2014)
+    player_regular_seasons(2013)
+    player_post_seasons(2013)
+    player_regular_seasons(2012)
+    player_post_seasons(2012)
+    player_regular_seasons(2011)
+    player_post_seasons(2011)
+    player_regular_seasons(2010)
+    player_post_seasons(2010)
 
     db.commit()
 
