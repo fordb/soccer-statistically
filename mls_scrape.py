@@ -25,13 +25,14 @@ def create_leagues():
             league_id char(36),
             short_name varchar(5),
             long_name varchar(30),
-            country varchar(30));
+            country varchar(30),
+            unique key league (short_name, long_name));
     """
     cur.execute(create_table)
 
     l_id = uuid.uuid4()
     insert_data = """
-        insert into leagues
+        insert ignore into leagues
             (league_id, short_name, long_name, country)
             values (
                 '{id}',
@@ -50,7 +51,8 @@ def create_clubs():
             club_id char(36),
             name varchar(30),
             city varchar(30),
-            league_id char(36));
+            league_id char(36),
+            unique key name (name));
     """
     cur.execute(create_table)
 
@@ -73,7 +75,8 @@ def create_club_seasons():
             offsides int,
             corners int,
             pkg int,
-            pka int);
+            pka int,
+            unique key team_year (club_id, year, type));
     """
     cur.execute(create_table)
 
@@ -102,7 +105,7 @@ def club_regular_seasons(y):
         club_dict[club.lower().replace(" ", "").replace(".", "")] = c_id
 
         insert_club_data = """
-            insert into clubs
+            insert ignore into clubs
                 (club_id, name, city, league_id)
                 values (
                     '{c_id}',
@@ -113,13 +116,12 @@ def club_regular_seasons(y):
         cur.execute(insert_club_data)
 
         insert_data = """
-            insert into club_seasons
-                (team_id, year, type, club_id, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka)
+            insert ignore into club_seasons
+                (club_id, year, type, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka)
                 values (
                     '{id}',
                     {year},
                     'regular',
-                    '{c_id}',
                     {gp},
                     {goals},
                     {assists},
@@ -132,7 +134,7 @@ def club_regular_seasons(y):
                     {pkg},
                     {pka}
                     );
-        """.format(id=c_id, year=y, c_id=c_id, gp=gp, goals=goals, assists=assists, shots=shots, sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners, pkg=pkg, pka=pka)
+        """.format(id=c_id, year=y, gp=gp, goals=goals, assists=assists, shots=shots, sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners, pkg=pkg, pka=pka)
         cur.execute(insert_data)
 
 
@@ -158,13 +160,12 @@ def club_post_seasons(y):
         c_id = club_dict[club.lower().replace(" ", "").replace(".", "")]
 
         insert_data = """
-                insert into club_seasons
-                    (team_id, year, type, club_id, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka)
+                insert ignore into club_seasons
+                    (club_id, year, type, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka)
                     values (
-                        '{id}',
+                        '{c_id}',
                         {year},
                         'post',
-                        '{c_id}',
                         {gp},
                         {goals},
                         {assists},
@@ -177,7 +178,7 @@ def club_post_seasons(y):
                         {pkg},
                         {pka}
                         );
-        """.format(id=c_id, year=y, c_id=c_id, gp=gp, goals=goals, assists=assists, shots=shots, sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners, pkg=pkg, pka=pka)
+        """.format(c_id=c_id, year=y, gp=gp, goals=goals, assists=assists, shots=shots, sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners, pkg=pkg, pka=pka)
         cur.execute(insert_data)
 
 
@@ -197,7 +198,8 @@ def active_players():
             weight smallint,
             country varchar(50),
             active varchar(10),
-            twitter varchar(30));
+            twitter varchar(30),
+            unique key name (name));
     """
     cur.execute(create_table)
 
@@ -265,7 +267,7 @@ def active_players():
                     pass
                 else:
                     insert_new_club = """
-                        insert into clubs
+                        insert ignore into clubs
                             (club_id, name, city, league_id)
                             values (
                                 '{id}',
@@ -277,7 +279,7 @@ def active_players():
                     cur.execute(insert_new_club)
 
             insert_data = """
-                insert into players
+                insert ignore into players
                     (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
                     values (
                         '{id}',
@@ -359,7 +361,7 @@ def inactive_players():
                     pass
                 else:
                     insert_new_club = """
-                        insert into clubs
+                        insert ignore into clubs
                             (club_id, name, city, league_id)
                             values (
                                 '{id}',
@@ -373,7 +375,7 @@ def inactive_players():
             p_id = uuid.uuid4()
             player_dict[name.lower().replace(" ", "")] = p_id
             insert_data = """
-                insert into players
+                insert ignore into players
                     (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
                     values (
                         '{id}',
@@ -412,7 +414,8 @@ def create_player_seasons():
             home_goals int,
             away_goals int,
             gp_90 decimal(4,2),
-            scoring_pct decimal(4,1));
+            scoring_pct decimal(4,1),
+            unique key id_year (player_id, year));
     """
     cur.execute(create_table)
 
@@ -455,7 +458,7 @@ def player_regular_seasons(y):
             except KeyError:
                 p_id = uuid.uuid4()
                 insert_new_player = """
-                    insert into players
+                    insert ignore into players
                         (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
                         values (
                             '{id}',
@@ -474,7 +477,7 @@ def player_regular_seasons(y):
                 cur.execute(insert_new_player)
 
             insert_data = """
-                    insert into player_seasons
+                    insert ignore into player_seasons
                         (player_id, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                         values (
                             '{id}',
@@ -530,7 +533,7 @@ def player_post_seasons(y):
         except KeyError:
             p_id = uuid.uuid4()
             insert_new_player = """
-                insert into players
+                insert ignore into players
                     (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
                     values (
                         '{id}',
@@ -549,7 +552,7 @@ def player_post_seasons(y):
             cur.execute(insert_new_player)
 
         insert_data = """
-                insert into player_seasons
+                insert ignore into player_seasons
                     (player_id, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                     values (
                         '{id}',
