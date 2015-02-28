@@ -1,4 +1,4 @@
-*# MySQL soccer database*
+# MySQL soccer database
 
 ## Installation Instructions
 Follow this link: http://dev.mysql.com/doc/refman/5.5/en/getting-mysql.html
