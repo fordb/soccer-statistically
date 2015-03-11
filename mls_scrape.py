@@ -24,7 +24,7 @@ def create_leagues():
     cur.execute('drop table if exists leagues;')
     create_table = """
         create table leagues (
-            league_id char(36),
+            league_id int,
             short_name varchar(5),
             long_name varchar(30),
             country varchar(30),
@@ -52,10 +52,10 @@ def create_clubs():
     cur.execute('drop table if exists clubs;')
     create_table = """
         create table clubs (
-            club_id char(36),
+            club_id int,
             name varchar(30),
             city varchar(30),
-            league_id char(36),
+            league_id int,
             unique key name (name));
     """
     cur.execute(create_table)
@@ -65,10 +65,9 @@ def create_club_seasons():
     cur.execute('drop table if exists club_seasons;')
     create_table = """
         create table club_seasons (
-            team_id char(36),
+            club_id int,
             year int,
             type varchar(10),
-            club_id char(36),
             gp int,
             goals int,
             assists int,
@@ -114,10 +113,10 @@ def club_regular_seasons(y):
             insert ignore into clubs
                 (club_id, name, city, league_id)
                 values (
-                    '{c_id}',
+                    {c_id},
                     '{club}',
                     NULL,
-                    '{l_id}')
+                    {l_id})
         """.format(c_id=c_id, club=club, l_id=league_dict['MLS'])
         cur.execute(insert_club_data)
 
@@ -125,7 +124,7 @@ def club_regular_seasons(y):
             insert ignore into club_seasons
                 (club_id, year, type, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka)
                 values (
-                    '{id}',
+                    {id},
                     {year},
                     'regular',
                     {gp},
@@ -169,7 +168,7 @@ def club_post_seasons(y):
                 insert ignore into club_seasons
                     (club_id, year, type, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka)
                     values (
-                        '{c_id}',
+                        {c_id},
                         {year},
                         'post',
                         {gp},
@@ -194,11 +193,11 @@ def active_players():
     cur.execute('drop table if exists players;')
     create_table = """
         create table players (
-            player_id char(36) primary key,
+            player_id int primary key,
             number smallint,
             position varchar(5),
             name varchar(30),
-            club_id char(36),
+            club_id int,
             age smallint,
             height int,
             weight smallint,
@@ -287,10 +286,10 @@ def active_players():
                         insert ignore into clubs
                             (club_id, name, city, league_id)
                             values (
-                                '{id}',
+                                {id},
                                 '{club}',
                                 NULL,
-                                '{l_id}'
+                                {l_id}
                                 );
                     """.format(id=c_id, club=club, l_id=l_id)
                     cur.execute(insert_new_club)
@@ -299,11 +298,11 @@ def active_players():
                 insert ignore into players
                     (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
                     values (
-                        '{id}',
+                        {id},
                         {num},
                         '{position}',
                         '{name}',
-                        '{c_id}',
+                        {c_id},
                         {age},
                         {height},
                         {weight},
@@ -390,10 +389,10 @@ def inactive_players():
                         insert ignore into clubs
                             (club_id, name, city, league_id)
                             values (
-                                '{id}',
+                                {id},
                                 '{club}',
                                 NULL,
-                                '{l_id}'
+                                {l_id}
                                 );
                     """.format(id=c_id, club=club, l_id=l_id)
                     cur.execute(insert_new_club)
@@ -406,11 +405,11 @@ def inactive_players():
                 insert ignore into players
                     (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
                     values (
-                        '{id}',
+                        {id},
                         {num},
                         '{position}',
                         '{name}',
-                        '{c_id}',
+                        {c_id},
                         {age},
                         {height},
                         {weight},
@@ -426,7 +425,7 @@ def create_player_seasons():
     cur.execute('drop table if exists player_seasons;')
     create_table = """
         create table player_seasons (
-            player_id char(36),
+            player_id int,
             year int,
             type varchar(10),
             position varchar(10),
@@ -491,7 +490,7 @@ def player_regular_seasons(y):
                     insert ignore into players
                         (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
                         values (
-                            '{id}',
+                            {id},
                             NULL,
                             NULL,
                             '{name}',
@@ -510,7 +509,7 @@ def player_regular_seasons(y):
                     insert ignore into player_seasons
                         (player_id, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                         values (
-                            '{id}',
+                            {id},
                             {year},
                             'regular',
                             '{pos}',
@@ -568,7 +567,7 @@ def player_post_seasons(y):
                 insert ignore into players
                     (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
                     values (
-                        '{id}',
+                        {id},
                         NULL,
                         NULL,
                         '{name}',
@@ -587,7 +586,7 @@ def player_post_seasons(y):
                 insert ignore into player_seasons
                     (player_id, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                     values (
-                        '{id}',
+                        {id},
                         {year},
                         'post',
                         '{pos}',
@@ -640,7 +639,7 @@ def main():
     player_regular_seasons(2011)
     player_post_seasons(2011)
     player_regular_seasons(2010)
-    player_post_seasons(2010)
+    # player_post_seasons(2010)
 
     db.commit()
 
