@@ -1,7 +1,6 @@
 import MySQLdb
 import sys
 from unidecode import unidecode
-import uuid
 from bs4 import BeautifulSoup
 import re
 import urllib2
@@ -17,6 +16,9 @@ player_dict = {}
 club_dict = {}
 league_dict = {}
 
+player_counter = 1
+club_counter = 1
+league_counter = 1
 
 def create_leagues():
     cur.execute('drop table if exists leagues;')
@@ -29,19 +31,21 @@ def create_leagues():
             unique key league (short_name, long_name));
     """
     cur.execute(create_table)
-
-    l_id = uuid.uuid4()
+    global league_counter
+    l_id = league_counter
+    league_counter += 1
+    l_id_other = league_counter
+    league_counter += 1
     insert_data = """
         insert ignore into leagues
             (league_id, short_name, long_name, country)
-            values (
-                '{id}',
-                'MLS',
-                'Major League Soccer',
-                'USA')
-    """.format(id=l_id)
+            values
+                ('{id}','MLS','Major League Soccer','USA'),
+                ('{id2}','Other','Other',NULL)
+    """.format(id=l_id, id2=l_id_other)
     cur.execute(insert_data)
     league_dict['MLS'] = l_id
+    league_dict['Other'] = l_id_other
 
 
 def create_clubs():
@@ -100,7 +104,9 @@ def club_regular_seasons(y):
         corners = soup.find('tbody').findAll('td')[row+9].contents[0]
         pkg = soup.find('tbody').findAll('td')[row+10].contents[0]
         pka = soup.find('tbody').findAll('td')[row+11].contents[0]
-        c_id = uuid.uuid4()
+        global club_counter
+        c_id = club_counter
+        club_counter += 1
 
         club_dict[club.lower().replace(" ", "").replace(".", "")] = c_id
 
@@ -262,16 +268,21 @@ def active_players():
                 twitter = str(twitters[c]).split('twitter.com/')[1].split('" target')[0].lstrip().rstrip()
             except IndexError:
                 twitter = 'NULL'
-            p_id = uuid.uuid4()
+            global player_counter
+            p_id = player_counter
+            player_counter += 1
             player_dict[name.lower().replace(" ", "")] = p_id
 
             try:
                 c_id = club_dict[club.lower().replace(" ", "").replace(".", "")]
             except KeyError:
-                c_id = uuid.uuid4()
+                global club_counter
+                c_id = club_counter
+                club_counter += 1
                 if club == 'NULL':
                     pass
                 else:
+                    l_id = league_dict['Other']
                     insert_new_club = """
                         insert ignore into clubs
                             (club_id, name, city, league_id)
@@ -279,9 +290,9 @@ def active_players():
                                 '{id}',
                                 '{club}',
                                 NULL,
-                                NULL
+                                '{l_id}'
                                 );
-                    """.format(id=c_id, club=club)
+                    """.format(id=c_id, club=club, l_id=l_id)
                     cur.execute(insert_new_club)
 
             insert_data = """
@@ -368,10 +379,13 @@ def inactive_players():
             try:
                 c_id = club_dict[club.lower().replace(" ", "").replace(".", "")]
             except KeyError:
-                c_id = uuid.uuid4()
+                global club_counter
+                c_id = club_counter
+                club_counter += 1
                 if club == 'NULL':
                     pass
                 else:
+                    l_id = league_dict['Other']
                     insert_new_club = """
                         insert ignore into clubs
                             (club_id, name, city, league_id)
@@ -379,12 +393,14 @@ def inactive_players():
                                 '{id}',
                                 '{club}',
                                 NULL,
-                                NULL
+                                '{l_id}'
                                 );
-                    """.format(id=c_id, club=club)
+                    """.format(id=c_id, club=club, l_id=l_id)
                     cur.execute(insert_new_club)
 
-            p_id = uuid.uuid4()
+            global player_counter
+            p_id = player_counter
+            player_counter += 1
             player_dict[name.lower().replace(" ", "")] = p_id
             insert_data = """
                 insert ignore into players
@@ -468,7 +484,9 @@ def player_regular_seasons(y):
             try:
                 p_id = player_dict[name.lower().replace(" ", "")]
             except KeyError:
-                p_id = uuid.uuid4()
+                global player_counter
+                p_id = player_counter
+                player_counter += 1
                 insert_new_player = """
                     insert ignore into players
                         (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
@@ -543,7 +561,9 @@ def player_post_seasons(y):
         try:
             p_id = player_dict[name.lower().replace(" ", "")]
         except KeyError:
-            p_id = uuid.uuid4()
+            global player_counter
+            p_id = player_counter
+            player_counter += 1
             insert_new_player = """
                 insert ignore into players
                     (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
