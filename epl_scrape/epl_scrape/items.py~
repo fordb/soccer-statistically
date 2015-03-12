@@ -1,0 +1,13 @@
+# -*- coding: utf-8 -*-
+import scrapy
+
+
+class ClubPageItem(scrapy.Item):
+    title = scrapy.Field()
+    link = scrapy.Field()
+
+
+class ClubDetailItem(scrapy.Item):
+    url = scrapy.Field()
+    title = scrapy.Field()
+    
