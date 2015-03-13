@@ -8,7 +8,11 @@ class ClubPageItem(scrapy.Item):
 
 
 class ClubDetailItem(scrapy.Item):
-    url = scrapy.Field()
     name = scrapy.Field()
     gp = scrapy.Field()
-    
+    wins = scrapy.Field()
+    draws = scrapy.Field()
+    losses = scrapy.Field()
+    gf = scrapy.Field()
+    ga = scrapy.Field()
+    pk_goals = scrapy.Field()

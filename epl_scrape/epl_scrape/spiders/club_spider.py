@@ -15,10 +15,6 @@ class EPLClubSpider(scrapy.spider.BaseSpider):
         clubs = response.xpath('//ul/li[re:test(@class, "logo[0-9]+$")]//@href').extract()
         for c in clubs:
             url = "http://www.premierleague.com" + c.replace("profile.overview.html", "profile.statistics.html")
-            club = ClubPageItem()
-            club["title"] = url.split("/")[-1]
-            club["link"] = url
-            yield club
 
             yield scrapy.http.Request(url, callback=self.parse_club)
 
@@ -28,10 +24,20 @@ class EPLClubSpider(scrapy.spider.BaseSpider):
         club = ClubDetailItem()
         name = response.xpath('//div[@class="overlay"]/h2[@class="noborder"]/text()').extract()
         played = response.xpath('//li[@name="played"]/div[@class="data"]/text()').extract()
-
-        club["url"] = response.url
+        wins = response.xpath('//li[@name="won"]/div[@class="data"]/text()').extract()
+        draws = response.xpath('//li[@name="drawn"]/div[@class="data"]/text()').extract()
+        losses = response.xpath('//li[@name="lost"]/div[@class="data"]/text()').extract()
+        gf = response.xpath('//li[@name="goalsFor"][1]/div[@class="data"]/text()').extract()
+        ga = response.xpath('//li[@name="goalsAgainst"]/div[@class="data"]/text()').extract()
+        pk_goals = response.xpath('//li[@name="goalsFor"][2]/div[@class="data"]/text()').extract()
         club["name"] = name
         club["gp"] = played
+        club["wins"] = wins
+        club["draws"] = draws
+        club["losses"] = losses
+        club["gf"] = gf
+        club["ga"] = ga
+        club["pk_goals"] = pk_goals
 
         yield club
 
