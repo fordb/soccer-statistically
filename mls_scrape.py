@@ -243,6 +243,8 @@ def active_players():
             club = unidecode(unicode(str(clubs[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
             if club == '':
                 club = 'NULL'
+            else:
+                club = club.replace("'", "''")
             age = unidecode(unicode(str(ages[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
             if age == '':
                 age = 'NULL'
@@ -350,6 +352,8 @@ def inactive_players():
             club = unidecode(unicode(str(clubs[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
             if club == '':
                 club = 'NULL'
+            else:
+                club = club.replace("'", "''")
             age = unidecode(unicode(str(ages[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
             if age == '':
                 age = 'NULL'
@@ -625,7 +629,27 @@ def main():
     club_post_seasons(2011)
     club_regular_seasons(2010)
     club_post_seasons(2010)
-
+    club_regular_seasons(2009)
+    club_post_seasons(2009)
+    club_regular_seasons(2008)
+    club_post_seasons(2008)
+    club_regular_seasons(2007)
+    club_post_seasons(2007)
+    club_regular_seasons(2006)
+    club_post_seasons(2006)
+    club_regular_seasons(2005)
+    club_post_seasons(2005)
+    club_regular_seasons(2004)
+    club_post_seasons(2004)
+    club_regular_seasons(2003)
+    club_post_seasons(2003)
+    club_regular_seasons(2002)
+    club_post_seasons(2002)
+    club_regular_seasons(2001)
+    club_post_seasons(2001)
+    club_regular_seasons(2000)
+    club_post_seasons(2000)
+    
     active_players()
     inactive_players()
 
@@ -639,7 +663,27 @@ def main():
     player_regular_seasons(2011)
     player_post_seasons(2011)
     player_regular_seasons(2010)
-    # player_post_seasons(2010)
+    player_post_seasons(2010)
+    player_regular_seasons(2009)
+    player_post_seasons(2009)
+    player_regular_seasons(2008)
+    player_post_seasons(2008)
+    player_regular_seasons(2007)
+    player_post_seasons(2007)
+    player_regular_seasons(2006)
+    player_post_seasons(2006)
+    player_regular_seasons(2005)
+    player_post_seasons(2005)
+    player_regular_seasons(2004)
+    player_post_seasons(2004)
+    player_regular_seasons(2003)
+    player_post_seasons(2003)
+    player_regular_seasons(2002)
+    player_post_seasons(2002)
+    player_regular_seasons(2001)
+    player_post_seasons(2001)
+    player_regular_seasons(2000)
+    player_post_seasons(2000)
 
     db.commit()
 
