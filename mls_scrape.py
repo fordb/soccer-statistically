@@ -187,249 +187,11 @@ def club_post_seasons(y):
         cur.execute(insert_data)
 
 
-def active_players():
-    print >>sys.stderr, '[{time}] Scraping Active players...'.format(time=datetime.datetime.now())
-    # get player data
-    cur.execute('drop table if exists players;')
-    create_table = """
-        create table players (
-            player_id int primary key,
-            number smallint,
-            position varchar(5),
-            name varchar(30),
-            club_id int,
-            age smallint,
-            height int,
-            weight smallint,
-            country varchar(50),
-            active varchar(10),
-            twitter varchar(30),
-            unique key name (name));
-    """
-    cur.execute(create_table)
-
-    # active players only
-    for n in range(11):
-        print >>sys.stderr, '[{time}] Running page {n}...'.format(time=datetime.datetime.now(), n=n)
-        url = 'http://www.mlssoccer.com/players?page={num}&field_player_club_nid=All&tid_2=197&title='.format(num=n)
-
-        page = opener.open(url).read()
-        soup = BeautifulSoup(page)
-
-        numbers = soup.findAll('td', {'class': 'views-field views-field-field-player-jersey-no-value'})
-        positions = soup.findAll('td', {'class': 'views-field views-field-field-player-position-detail-value'})
-        names = soup.findAll('td', {'class': 'views-field views-field-field-player-lname-value'})
-        clubs = soup.findAll('td', {'class': 'views-field views-field-field-player-club-nid'})
-        ages = soup.findAll('td', {'class': 'views-field views-field-field-player-birth-date-value-1'})
-        heights = soup.findAll('td', {'class': 'views-field views-field-field-player-height-value'})
-        weights = soup.findAll('td', {'class': 'views-field views-field-field-player-weight-value'})
-        countries = soup.findAll('td', {'class': 'views-field views-field-field-player-birth-country-value'})
-        actives = soup.findAll('td', {'class': 'views-field views-field-name'})
-        twitters = soup.findAll('td', {'class': 'views-field views-field-field-player-twitter-username-value'})
-
-        assert len(numbers) == len(positions) == len(names) == len(clubs) == len(ages) == len(heights) == len(weights) == len(countries) == len(actives) == len(twitters)
-
-        for c in range(len(countries)):
-            number = unidecode(unicode(str(numbers[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if number == '':
-                number = 'NULL'
-            position = unidecode(unicode(str(positions[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if position == '':
-                position = 'NULL'
-            name = unidecode(unicode(str(names[c]).split('</a>')[0].split('>')[-1].lstrip().rstrip(), "utf-8"))
-            name = name.replace("'", "")
-            if name == '':
-                name = 'NULL'
-            club = unidecode(unicode(str(clubs[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if club == '':
-                club = 'NULL'
-            else:
-                club = club.replace("'", "''")
-            age = unidecode(unicode(str(ages[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if age == '':
-                age = 'NULL'
-            height = unidecode(unicode(str(heights[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if height == '':
-                height = 'NULL'
-            else:
-                height = height.replace("'", "''")
-                feet = int(height[0])
-                try:
-                    inches = int(re.findall('[\d+]', height)[1])
-                except IndexError:
-                    inches = 0
-            weight = unidecode(unicode(str(weights[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if weight == '':
-                weight = 'NULL'
-            country = unidecode(unicode(str(countries[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if country == '':
-                country = 'NULL'
-            active = unidecode(unicode(str(actives[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            try:
-                twitter = str(twitters[c]).split('twitter.com/')[1].split('" target')[0].lstrip().rstrip()
-            except IndexError:
-                twitter = 'NULL'
-            global player_counter
-            p_id = player_counter
-            player_counter += 1
-            player_dict[name.lower().replace(" ", "")] = p_id
-
-            try:
-                c_id = club_dict[club.lower().replace(" ", "").replace(".", "")]
-            except KeyError:
-                global club_counter
-                c_id = club_counter
-                club_counter += 1
-                if club == 'NULL':
-                    pass
-                else:
-                    l_id = league_dict['Other']
-                    insert_new_club = """
-                        insert ignore into clubs
-                            (club_id, name, city, league_id)
-                            values (
-                                {id},
-                                '{club}',
-                                NULL,
-                                {l_id}
-                                );
-                    """.format(id=c_id, club=club, l_id=l_id)
-                    cur.execute(insert_new_club)
-
-            insert_data = """
-                insert ignore into players
-                    (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
-                    values (
-                        {id},
-                        {num},
-                        '{position}',
-                        '{name}',
-                        {c_id},
-                        {age},
-                        {height},
-                        {weight},
-                        '{country}',
-                        '{active}',
-                        '{twitter}'
-                        );
-            """.format(id=p_id, num=number, position=position, name=name, c_id=c_id, age=age, height=(feet*12)+inches, weight=weight, country=country, active=active, twitter=twitter)
-            cur.execute(insert_data)
-
-
-def inactive_players():
-    print >>sys.stderr, '[{time}] Scraping Inactive players...'.format(time=datetime.datetime.now())
-    for n in range(37):
-        print >>sys.stderr, '[{time}] Running page {n}...'.format(time=datetime.datetime.now(), n=n)
-        url = 'http://www.mlssoccer.com/players?page={num}&field_player_club_nid=All&tid_2=198&title='.format(num=n)
-
-        page = opener.open(url).read()
-        soup = BeautifulSoup(page)
-
-        numbers = soup.findAll('td', {'class': 'views-field views-field-field-player-jersey-no-value'})
-        positions = soup.findAll('td', {'class': 'views-field views-field-field-player-position-detail-value'})
-        names = soup.findAll('td', {'class': 'views-field views-field-field-player-lname-value'})
-        clubs = soup.findAll('td', {'class': 'views-field views-field-field-player-club-nid'})
-        ages = soup.findAll('td', {'class': 'views-field views-field-field-player-birth-date-value-1'})
-        heights = soup.findAll('td', {'class': 'views-field views-field-field-player-height-value'})
-        weights = soup.findAll('td', {'class': 'views-field views-field-field-player-weight-value'})
-        countries = soup.findAll('td', {'class': 'views-field views-field-field-player-birth-country-value'})
-        actives = soup.findAll('td', {'class': 'views-field views-field-name'})
-        twitters = soup.findAll('td', {'class': 'views-field views-field-field-player-twitter-username-value'})
-
-        assert len(numbers) == len(positions) == len(names) == len(clubs) == len(ages) == len(heights) == len(weights) == len(countries) == len(actives) == len(twitters)
-
-        for c in range(len(countries)):
-            number = unidecode(unicode(str(numbers[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if number == '':
-                number = 'NULL'
-            position = unidecode(unicode(str(positions[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if position == '':
-                position = 'NULL'
-            name = unidecode(unicode(str(names[c]).split('</a>')[0].split('>')[-1].lstrip().rstrip(), "utf-8"))
-            name = name.replace("'", "")
-            if name == '':
-                name = 'NULL'
-            club = unidecode(unicode(str(clubs[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if club == '':
-                club = 'NULL'
-            else:
-                club = club.replace("'", "''")
-            age = unidecode(unicode(str(ages[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if age == '':
-                age = 'NULL'
-            height = unidecode(unicode(str(heights[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if height == '':
-                height = 'NULL'
-            else:
-                height = height.replace("'", "''")
-                feet = int(height[0])
-                try:
-                    inches = int(re.findall('[\d+]', height)[1])
-                except IndexError:
-                    inches = 0
-            weight = unidecode(unicode(str(weights[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if weight == '':
-                weight = 'NULL'
-            country = unidecode(unicode(str(countries[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            if country == '':
-                country = 'NULL'
-            active = unidecode(unicode(str(actives[c]).split('>')[1].split('<')[0].lstrip().rstrip(), "utf-8"))
-            try:
-                twitter = str(twitters[c]).split('twitter.com/')[1].split('" target')[0].lstrip().rstrip()
-            except IndexError:
-                twitter = 'NULL'
-
-            try:
-                c_id = club_dict[club.lower().replace(" ", "").replace(".", "")]
-            except KeyError:
-                global club_counter
-                c_id = club_counter
-                club_counter += 1
-                if club == 'NULL':
-                    pass
-                else:
-                    l_id = league_dict['Other']
-                    insert_new_club = """
-                        insert ignore into clubs
-                            (club_id, name, city, league_id)
-                            values (
-                                {id},
-                                '{club}',
-                                NULL,
-                                {l_id}
-                                );
-                    """.format(id=c_id, club=club, l_id=l_id)
-                    cur.execute(insert_new_club)
-
-            global player_counter
-            p_id = player_counter
-            player_counter += 1
-            player_dict[name.lower().replace(" ", "")] = p_id
-            insert_data = """
-                insert ignore into players
-                    (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
-                    values (
-                        {id},
-                        {num},
-                        '{position}',
-                        '{name}',
-                        {c_id},
-                        {age},
-                        {height},
-                        {weight},
-                        '{country}',
-                        '{active}',
-                        '{twitter}'
-                        );
-            """.format(id=p_id, num=number, position=position, name=name, c_id=c_id, age=age, height=(feet*12)+inches, weight=weight, country=country, active=active, twitter=twitter)
-            cur.execute(insert_data)
-
-
 def create_player_seasons():
     cur.execute('drop table if exists player_seasons;')
     create_table = """
         create table player_seasons (
-            player_id int,
+            player varchar(30),
             year int,
             type varchar(10),
             position varchar(10),
@@ -446,7 +208,7 @@ def create_player_seasons():
             away_goals int,
             gp_90 decimal(4,2),
             scoring_pct decimal(4,1),
-            unique key id_year (player_id, year));
+            unique key player_year (player, year));
     """
     cur.execute(create_table)
 
@@ -490,30 +252,12 @@ def player_regular_seasons(y):
                 global player_counter
                 p_id = player_counter
                 player_counter += 1
-                insert_new_player = """
-                    insert ignore into players
-                        (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
-                        values (
-                            {id},
-                            NULL,
-                            NULL,
-                            '{name}',
-                            NULL,
-                            NULL,
-                            NULL,
-                            NULL,
-                            NULL,
-                            NULL,
-                            NULL
-                            );
-                """.format(id=p_id, name=name)
-                cur.execute(insert_new_player)
 
             insert_data = """
                     insert ignore into player_seasons
-                        (player_id, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
+                        (player, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                         values (
-                            {id},
+                            '{player}',
                             {year},
                             'regular',
                             '{pos}',
@@ -531,7 +275,7 @@ def player_regular_seasons(y):
                             {gp90},
                             {scoring_pct}
                             );
-            """.format(id=p_id, year=y, club=club, pos=pos, gp=gp, gs=gs, mins=mins, goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
+            """.format(player=name, year=y, club=club, pos=pos, gp=gp, gs=gs, mins=mins, goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
             cur.execute(insert_data)
         if temp_name is None:
             break
@@ -567,30 +311,12 @@ def player_post_seasons(y):
             global player_counter
             p_id = player_counter
             player_counter += 1
-            insert_new_player = """
-                insert ignore into players
-                    (player_id, number, position, name, club_id, age, height, weight, country, active, twitter)
-                    values (
-                        {id},
-                        NULL,
-                        NULL,
-                        '{name}',
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL,
-                        NULL
-                        );
-            """.format(id=p_id, name=name)
-            cur.execute(insert_new_player)
 
         insert_data = """
                 insert ignore into player_seasons
-                    (player_id, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
+                    (player, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                     values (
-                        {id},
+                        '{player}',
                         {year},
                         'post',
                         '{pos}',
@@ -608,7 +334,7 @@ def player_post_seasons(y):
                         {gp90},
                         {scoring_pct}
                         );
-        """.format(id=p_id, year=y, pos=pos, gp=gp, gs=gs, mins=mins, goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
+        """.format(player=name, year=y, pos=pos, gp=gp, gs=gs, mins=mins, goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
         cur.execute(insert_data)
 
 
@@ -619,71 +345,71 @@ def main():
     create_clubs()
 
     create_club_seasons()
-    club_regular_seasons(2014)
-    club_post_seasons(2014)
-    club_regular_seasons(2013)
-    club_post_seasons(2013)
-    club_regular_seasons(2012)
-    club_post_seasons(2012)
-    club_regular_seasons(2011)
-    club_post_seasons(2011)
-    club_regular_seasons(2010)
-    club_post_seasons(2010)
-    club_regular_seasons(2009)
-    club_post_seasons(2009)
-    club_regular_seasons(2008)
-    club_post_seasons(2008)
-    club_regular_seasons(2007)
-    club_post_seasons(2007)
-    club_regular_seasons(2006)
-    club_post_seasons(2006)
-    club_regular_seasons(2005)
-    club_post_seasons(2005)
-    club_regular_seasons(2004)
-    club_post_seasons(2004)
-    club_regular_seasons(2003)
-    club_post_seasons(2003)
-    club_regular_seasons(2002)
-    club_post_seasons(2002)
-    club_regular_seasons(2001)
-    club_post_seasons(2001)
-    club_regular_seasons(2000)
-    club_post_seasons(2000)
+    #club_regular_seasons(2014)
+    #club_post_seasons(2014)
+    #club_regular_seasons(2013)
+    #club_post_seasons(2013)
+    #club_regular_seasons(2012)
+    #club_post_seasons(2012)
+    #club_regular_seasons(2011)
+    #club_post_seasons(2011)
+    #club_regular_seasons(2010)
+    #club_post_seasons(2010)
+    #club_regular_seasons(2009)
+    #club_post_seasons(2009)
+    #club_regular_seasons(2008)
+    #club_post_seasons(2008)
+    #club_regular_seasons(2007)
+    #club_post_seasons(2007)
+    #club_regular_seasons(2006)
+    #club_post_seasons(2006)
+    #club_regular_seasons(2005)
+    #club_post_seasons(2005)
+    #club_regular_seasons(2004)
+    #club_post_seasons(2004)
+    #club_regular_seasons(2003)
+    #club_post_seasons(2003)
+    #club_regular_seasons(2002)
+    #club_post_seasons(2002)
+    #club_regular_seasons(2001)
+    #club_post_seasons(2001)
+    #club_regular_seasons(2000)
+    #club_post_seasons(2000)
     
-    active_players()
-    inactive_players()
+    #active_players()
+    #inactive_players()
 
     create_player_seasons()
-    player_regular_seasons(2014)
-    player_post_seasons(2014)
-    player_regular_seasons(2013)
-    player_post_seasons(2013)
-    player_regular_seasons(2012)
-    player_post_seasons(2012)
-    player_regular_seasons(2011)
-    player_post_seasons(2011)
-    player_regular_seasons(2010)
-    player_post_seasons(2010)
+    #player_regular_seasons(2014)
+    #player_post_seasons(2014)
+    #player_regular_seasons(2013)
+    #player_post_seasons(2013)
+    #player_regular_seasons(2012)
+    #player_post_seasons(2012)
+    #player_regular_seasons(2011)
+    #player_post_seasons(2011)
+    #player_regular_seasons(2010)
+    #player_post_seasons(2010)
     player_regular_seasons(2009)
     player_post_seasons(2009)
-    player_regular_seasons(2008)
-    player_post_seasons(2008)
-    player_regular_seasons(2007)
-    player_post_seasons(2007)
-    player_regular_seasons(2006)
-    player_post_seasons(2006)
-    player_regular_seasons(2005)
-    player_post_seasons(2005)
+    #player_regular_seasons(2008)
+    #player_post_seasons(2008)
+    #player_regular_seasons(2007)
+    #player_post_seasons(2007)
+    #player_regular_seasons(2006)
+    #player_post_seasons(2006)
+    #player_regular_seasons(2005)
+    #player_post_seasons(2005)
     player_regular_seasons(2004)
     player_post_seasons(2004)
-    player_regular_seasons(2003)
-    player_post_seasons(2003)
-    player_regular_seasons(2002)
-    player_post_seasons(2002)
-    player_regular_seasons(2001)
-    player_post_seasons(2001)
-    player_regular_seasons(2000)
-    player_post_seasons(2000)
+    #player_regular_seasons(2003)
+    #player_post_seasons(2003)
+    #player_regular_seasons(2002)
+    #player_post_seasons(2002)
+    #player_regular_seasons(2001)
+    #player_post_seasons(2001)
+    #player_regular_seasons(2000)
+    #player_post_seasons(2000)
 
     db.commit()
 
