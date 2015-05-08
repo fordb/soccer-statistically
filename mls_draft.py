@@ -19,7 +19,7 @@ create_table = """
         year int,
         club varchar(50),
         name varchar(50),
-        position varchar(5),
+        position varchar(10),
         affiliation varchar(50));
 """
 cur.execute(create_table)
@@ -46,19 +46,17 @@ for year in range(2000,2016):
             insert_data = """
                 insert ignore into draft
                   (year, club, name, position, affiliation)
-                  values (
-                    {y},
-                    '{c}',
-                    '{n}',
-                    '{p}',
-                    '{a}');
+                  values ({y}, '{c}', '{n}', '{p}', '{a}');
             """.format(y=year, c=team, n=player, p=position, a=affiliation)
             cur.execute(insert_data)
             
             data.append([year, team, player, position, affiliation])
     print year
            
+db.commit()
+cur.close()
 
 with open('draft.csv', 'wb') as draft:
     a = csv.writer(draft, delimiter=',')
     a.writerows(data)
+
