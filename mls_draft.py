@@ -1,3 +1,6 @@
+# a lot of the code based off of the blog post below:
+# https://adesquared.wordpress.com/2013/06/16/using-python-beautifulsoup-to-scrape-a-wikipedia-table/
+
 from bs4 import BeautifulSoup
 import urllib2
 import csv
