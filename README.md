@@ -10,4 +10,5 @@ To Do:
 - ~~Get data for all draft years (missing some in the middle)~~
 - ~~Scrape every round for each year (not just 1st round)~~
 - ~~Clean up mls_scrape.py code-- can remove a bunch of tables~~
-- Do some data QA
+- ~~Do some data QA~~
+- clean up position names
