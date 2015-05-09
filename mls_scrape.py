@@ -1,8 +1,6 @@
 import MySQLdb
 import sys
-from unidecode import unidecode
 from bs4 import BeautifulSoup
-import re
 import urllib2
 import datetime
 
@@ -19,46 +17,6 @@ league_dict = {}
 player_counter = 1
 club_counter = 1
 league_counter = 1
-
-def create_leagues():
-    cur.execute('drop table if exists leagues;')
-    create_table = """
-        create table leagues (
-            league_id int,
-            short_name varchar(5),
-            long_name varchar(30),
-            country varchar(30),
-            unique key league (short_name, long_name));
-    """
-    cur.execute(create_table)
-    global league_counter
-    l_id = league_counter
-    league_counter += 1
-    l_id_other = league_counter
-    league_counter += 1
-    insert_data = """
-        insert ignore into leagues
-            (league_id, short_name, long_name, country)
-            values
-                ('{id}','MLS','Major League Soccer','USA'),
-                ('{id2}','Other','Other',NULL)
-    """.format(id=l_id, id2=l_id_other)
-    cur.execute(insert_data)
-    league_dict['MLS'] = l_id
-    league_dict['Other'] = l_id_other
-
-
-def create_clubs():
-    cur.execute('drop table if exists clubs;')
-    create_table = """
-        create table clubs (
-            club_id int,
-            name varchar(30),
-            city varchar(30),
-            league_id int,
-            unique key name (name));
-    """
-    cur.execute(create_table)
 
 
 def create_club_seasons():
@@ -85,13 +43,15 @@ def create_club_seasons():
 
 
 def club_regular_seasons(y):
-    print >>sys.stderr, '[{time}] Scraping regular season teams year {y}...'.format(time=datetime.datetime.now(), y=y)
+    print >>sys.stderr, '[{time}] Scraping regular season teams year {y}...'.format(
+        time=datetime.datetime.now(), y=y)
     url = 'http://www.mlssoccer.com/stats/team?season_year={year}&season_type=REG&op=Search&form_id=mls_stats_team_form'.format(year=y)
     page = opener.open(url).read()
     soup = BeautifulSoup(page)
     length = len(soup.find('tbody').findAll('td'))
     for row in range(0, length, 12):
-        club = soup.find('tbody').findAll('td', attrs={'class': 'club-col'})[row/12].contents[0]
+        club = soup.find('tbody').findAll(
+            'td', attrs={'class': 'club-col'})[row/12].contents[0]
         gp = soup.find('tbody').findAll('td')[row+1].contents[0]
         goals = soup.find('tbody').findAll('td')[row+2].contents[0]
         assists = soup.find('tbody').findAll('td')[row+3].contents[0]
@@ -139,12 +99,15 @@ def club_regular_seasons(y):
                     {pkg},
                     {pka}
                     );
-        """.format(id=c_id, year=y, gp=gp, goals=goals, assists=assists, shots=shots, sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners, pkg=pkg, pka=pka)
+        """.format(id=c_id, year=y, gp=gp, goals=goals, assists=assists, shots=shots,
+                   sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners,
+                   pkg=pkg, pka=pka)
         cur.execute(insert_data)
 
 
 def club_post_seasons(y):
-    print >>sys.stderr, '[{time}] Scraping postseason teams year {y}...'.format(time=datetime.datetime.now(), y=y)
+    print >>sys.stderr, '[{time}] Scraping postseason teams year {y}...'.format(
+        time=datetime.datetime.now(), y=y)
     url = 'http://www.mlssoccer.com/stats/team?season_year={year}&season_type=PS&op=Search&form_id=mls_stats_team_form'.format(year=y)
     page = opener.open(url).read()
     soup = BeautifulSoup(page)
@@ -183,7 +146,9 @@ def club_post_seasons(y):
                         {pkg},
                         {pka}
                         );
-        """.format(c_id=c_id, year=y, gp=gp, goals=goals, assists=assists, shots=shots, sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners, pkg=pkg, pka=pka)
+        """.format(c_id=c_id, year=y, gp=gp, goals=goals, assists=assists, shots=shots,
+                   sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners, pkg=pkg,
+                   pka=pka)
         cur.execute(insert_data)
 
 
@@ -214,7 +179,8 @@ def create_player_seasons():
 
 
 def player_regular_seasons(y):
-    print >>sys.stderr, '[{time}] Scraping regular season year {y}...'.format(time=datetime.datetime.now(), y=y)
+    print >>sys.stderr, '[{time}] Scraping regular season year {y}...'.format(
+        time=datetime.datetime.now(), y=y)
     # regular season field players
     first_name = None
     for p in range(50):
@@ -222,7 +188,8 @@ def player_regular_seasons(y):
         page = opener.open(url).read()
         soup = BeautifulSoup(page)
         temp_name = None
-        print >>sys.stderr, '[{time}] Running page {n}...'.format(time=datetime.datetime.now(), n=p)
+        print >>sys.stderr, '[{time}] Running page {n}...'.format(
+            time=datetime.datetime.now(), n=p)
         for row in range(0, 400, 16):
             name = soup.find('tbody').findAll('a')[(row/15)-1].contents[0]
             name = name.replace("'", "")
@@ -246,12 +213,6 @@ def player_regular_seasons(y):
             gp90 = soup.find('tbody').findAll('td')[row+14].contents[0]
             scoring_pct = soup.find('tbody').findAll('td')[row+15].contents[0]
             temp_name = name
-            try:
-                p_id = player_dict[name.lower().replace(" ", "")]
-            except KeyError:
-                global player_counter
-                p_id = player_counter
-                player_counter += 1
 
             insert_data = """
                     insert ignore into player_seasons
@@ -275,14 +236,18 @@ def player_regular_seasons(y):
                             {gp90},
                             {scoring_pct}
                             );
-            """.format(player=name, year=y, club=club, pos=pos, gp=gp, gs=gs, mins=mins, goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
+            """.format(player=name, year=y, club=club, pos=pos, gp=gp, gs=gs, mins=mins,
+                       goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg,
+                       pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals,
+                       gp90=gp90, scoring_pct=scoring_pct)
             cur.execute(insert_data)
         if temp_name is None:
             break
 
 
 def player_post_seasons(y):
-    print >>sys.stderr, '[{time}] Scraping playoffs year {y}...'.format(time=datetime.datetime.now(), y=y)
+    print >>sys.stderr, '[{time}] Scraping playoffs year {y}...'.format(
+        time=datetime.datetime.now(), y=y)
     # playoff field players
     url = 'http://www.mlssoccer.com/stats/season?season_year={year}&season_type=PS&team=ALL&group=GOALS&op=Search&form_id=mls_stats_individual_form'.format(year=y)
     page = opener.open(url).read()
@@ -305,12 +270,6 @@ def player_post_seasons(y):
         away_goals = soup.find('tbody').findAll('td')[row+12].contents[0]
         gp90 = soup.find('tbody').findAll('td')[row+13].contents[0]
         scoring_pct = soup.find('tbody').findAll('td')[row+14].contents[0]
-        try:
-            p_id = player_dict[name.lower().replace(" ", "")]
-        except KeyError:
-            global player_counter
-            p_id = player_counter
-            player_counter += 1
 
         insert_data = """
                 insert ignore into player_seasons
@@ -334,15 +293,14 @@ def player_post_seasons(y):
                         {gp90},
                         {scoring_pct}
                         );
-        """.format(player=name, year=y, pos=pos, gp=gp, gs=gs, mins=mins, goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
+        """.format(player=name, year=y, pos=pos, gp=gp, gs=gs, mins=mins,
+                   goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg,
+                   pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals,
+                   gp90=gp90, scoring_pct=scoring_pct)
         cur.execute(insert_data)
 
 
 def main():
-
-    create_leagues()
-
-    create_clubs()
 
     create_club_seasons()
     #club_regular_seasons(2014)
@@ -380,36 +338,36 @@ def main():
     #inactive_players()
 
     create_player_seasons()
-    #player_regular_seasons(2014)
-    #player_post_seasons(2014)
-    #player_regular_seasons(2013)
-    #player_post_seasons(2013)
-    #player_regular_seasons(2012)
-    #player_post_seasons(2012)
-    #player_regular_seasons(2011)
-    #player_post_seasons(2011)
-    #player_regular_seasons(2010)
-    #player_post_seasons(2010)
-    player_regular_seasons(2009)
-    player_post_seasons(2009)
-    #player_regular_seasons(2008)
-    #player_post_seasons(2008)
-    #player_regular_seasons(2007)
-    #player_post_seasons(2007)
-    #player_regular_seasons(2006)
-    #player_post_seasons(2006)
-    #player_regular_seasons(2005)
-    #player_post_seasons(2005)
-    player_regular_seasons(2004)
-    player_post_seasons(2004)
-    #player_regular_seasons(2003)
-    #player_post_seasons(2003)
-    #player_regular_seasons(2002)
-    #player_post_seasons(2002)
-    #player_regular_seasons(2001)
-    #player_post_seasons(2001)
-    #player_regular_seasons(2000)
-    #player_post_seasons(2000)
+    player_regular_seasons(2014)
+    player_post_seasons(2014)
+    player_regular_seasons(2013)
+    player_post_seasons(2013)
+    player_regular_seasons(2012)
+    player_post_seasons(2012)
+    # player_regular_seasons(2011)
+    # player_post_seasons(2011)
+    # player_regular_seasons(2010)
+    # player_post_seasons(2010)
+    # player_regular_seasons(2009)
+    # player_post_seasons(2009)
+    # player_regular_seasons(2008)
+    # player_post_seasons(2008)
+    # player_regular_seasons(2007)
+    # player_post_seasons(2007)
+    # player_regular_seasons(2006)
+    # player_post_seasons(2006)
+    # player_regular_seasons(2005)
+    # player_post_seasons(2005)
+    # player_regular_seasons(2004)
+    # player_post_seasons(2004)
+    # player_regular_seasons(2003)
+    # player_post_seasons(2003)
+    # player_regular_seasons(2002)
+    # player_post_seasons(2002)
+    # player_regular_seasons(2001)
+    # player_post_seasons(2001)
+    # player_regular_seasons(2000)
+    # player_post_seasons(2000)
 
     db.commit()
 
