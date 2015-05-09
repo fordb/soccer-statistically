@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import urllib2
 import csv
 import MySQLdb
-import re
+from unidecode import unidecode
 
 db = MySQLdb.connect(host="localhost", user="root", db="soccer_stat")
 cur = db.cursor()
@@ -46,14 +46,12 @@ for year in range(2000, 2016):
             num = length - 4
             player = ""
             try:
-                player = max(cells[num+1].findAll(text=True), key=len).encode(
-                    'ascii', 'ignore')
+                player = max(cells[num+1].findAll(text=True), key=len)
             except:
                 IndexError
             if player == "PASS":
                 team = cells[num].find(text=True).encode('ascii', 'ignore')
-                player = max(cells[num+1].findAll(text=True), key=len).encode(
-                    'ascii', 'ignore')
+                player = unidecode(max(cells[num+1].findAll(text=True), key=len))
                 insert_data = """
                     insert ignore into draft
                       (year, round, pick, club, name, position, affiliation)
@@ -64,8 +62,7 @@ for year in range(2000, 2016):
                 pick += 1
             elif len(cells) in [4, 5]:
                 team = cells[num].find(text=True).encode('ascii', 'ignore')
-                player = max(cells[num+1].findAll(text=True), key=len).encode(
-                    'ascii', 'ignore')
+                player = unidecode(max(cells[num+1].findAll(text=True), key=len))
                 player = player.replace("'", "")
                 position = cells[num+2].find(text=True).encode('ascii', 'ignore')
                 affiliation = cells[num+3].find(text=True).encode('ascii', 'ignore')
