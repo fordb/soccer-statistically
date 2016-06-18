@@ -7,7 +7,8 @@ import csv
 import MySQLdb
 from unidecode import unidecode
 
-db = MySQLdb.connect(host="localhost", user="root", db="soccer_stat")
+db = MySQLdb.connect(host="localhost", user="ford", db="ss",
+                     passwd="soccerstatistic")
 cur = db.cursor()
 
 header = {'User-Agent': 'Mozilla/5.0'}
@@ -16,13 +17,13 @@ data = []
 
 cur.execute('drop table if exists draft')
 create_table = """
-    create table draft (
+    create table mls_draft (
         year int,
         round int,
         pick int,
         club varchar(50),
         name varchar(50),
-        position varchar(10),
+        position varchar(20),
         affiliation varchar(50));
 """
 cur.execute(create_table)
@@ -56,7 +57,7 @@ for year in range(2000, 2016):
                 team = cells[num].find(text=True).encode('ascii', 'ignore')
                 player = unidecode(max(cells[num+1].findAll(text=True), key=len))
                 insert_data = """
-                    insert ignore into draft
+                    insert ignore into mls_draft
                       (year, round, pick, club, name, position, affiliation)
                       values ({y}, {r}, {pick}, '{c}', NULL, NULL, NULL);
                 """.format(y=year, r=r+1, pick=pick+1, c=team, n=player)
@@ -71,7 +72,7 @@ for year in range(2000, 2016):
                 affiliation = cells[num+3].find(text=True).encode('ascii', 'ignore')
                 affiliation = affiliation.replace("'", "")
                 insert_data = """
-                    insert ignore into draft
+                    insert ignore into mls_draft
                       (year, round, pick, club, name, position, affiliation)
                       values ({y}, {r}, {pick}, '{c}', '{n}', '{p}', '{a}');
                 """.format(y=year, r=r+1, pick=pick+1, c=team, n=player,
