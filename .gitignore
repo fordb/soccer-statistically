@@ -5,3 +5,6 @@
 .Rhistory
 .DS_Store
 mls_draft/graphs/*
+.Rproj.user
+.Rhistory
+.RData
