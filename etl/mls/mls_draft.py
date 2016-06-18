@@ -85,7 +85,3 @@ for year in range(2000, 2016):
 db.commit()
 cur.close()
 
-with open('draft.csv', 'wb') as draft:
-    a = csv.writer(draft, delimiter=',')
-    a.writerows(data)
-

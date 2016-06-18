@@ -1,5 +1,4 @@
 import scrapy
-import urlparse
 from mls_shots.items import GameShotsItem
 
 game_id = 0
@@ -7,18 +6,18 @@ game_id = 0
 class ShotSpider(scrapy.Spider):
     name="shots"
     allowed_domains = ["matchcenter.mlssoccer.com"]
-    start_urls = ["http://www.mlssoccer.com/schedule?month=3&year=2014&club=all&competition_type=46&broadcast_type=all&op=Search&form_id=mls_schedule_form",
-                  "http://www.mlssoccer.com/schedule?month=4&year=2014&club=all&competition_type=46&broadcast_type=all&op=Search&form_id=mls_schedule_form",
-                  "http://www.mlssoccer.com/schedule?month=5&year=2014&club=all&competition_type=46&broadcast_type=all&op=Search&form_id=mls_schedule_form",
-                  "http://www.mlssoccer.com/schedule?month=6&year=2014&club=all&competition_type=46&broadcast_type=all&op=Search&form_id=mls_schedule_form",
-                  "http://www.mlssoccer.com/schedule?month=7&year=2014&club=all&competition_type=46&broadcast_type=all&op=Search&form_id=mls_schedule_form",
-                  "http://www.mlssoccer.com/schedule?month=8&year=2014&club=all&competition_type=46&broadcast_type=all&op=Search&form_id=mls_schedule_form",
-                  "http://www.mlssoccer.com/schedule?month=9&year=2014&club=all&competition_type=46&broadcast_type=all&op=Search&form_id=mls_schedule_form",
-                  "http://www.mlssoccer.com/schedule?month=10&year=2014&club=all&competition_type=46&broadcast_type=all&op=Search&form_id=mls_schedule_form"]
+    start_urls = ["http://www.mlssoccer.com/schedule?month=3&year=2014&club=select&club_options=9",
+                  "http://www.mlssoccer.com/schedule?month=4&year=2014&club=select&club_options=9",
+                  "http://www.mlssoccer.com/schedule?month=5&year=2014&club=select&club_options=9",
+                  "http://www.mlssoccer.com/schedule?month=6&year=2014&club=select&club_options=9",
+                  "http://www.mlssoccer.com/schedule?month=7&year=2014&club=select&club_options=9",
+                  "http://www.mlssoccer.com/schedule?month=8&year=2014&club=select&club_options=9",
+                  "http://www.mlssoccer.com/schedule?month=9&year=2014&club=select&club_options=9",
+                  "http://www.mlssoccer.com/schedule?month=10&year=2014&club=select&club_options=9"]
 
     def parse(self, response):
         global game_id
-        links =  [l + "/stats" for l in response.xpath('//td[@class="views-field links"]//@href').extract() if 'matchcenter' in l]
+        links =  [l + "/stats" for l in response.xpath('//div[@class="field-item even"]//@href').extract() if 'matchcenter' in l]
         for l in links:
             yield scrapy.http.Request(l, meta={'game_id': game_id}, callback=self.parse_game)
             game_id += 1
@@ -27,10 +26,9 @@ class ShotSpider(scrapy.Spider):
     def parse_game(self, response):
         home, away = response.xpath('//div[@class="sb-club-name"]/span[@class="sb-club-name-short"]/text()').extract()
         game = GameShotsItem()
-        home = response.xpath('//div[@class="sb-team sb-home"]/div[@class="sb-club-name"]/span[@class="sb-club-name-full"]//text()').extract()[0]
-        away = response.xpath('//div[@class="sb-team sb-away"]/div[@class="sb-club-name"]/span[@class="sb-club-name-full"]//text()').extract()[0]
         shots = [s for s in response.xpath('//svg[@class="sa-shot-box"]/g//@data-reactid').extract()]
         for s in shots:
+            print s
             try:
                 x1 = float(response.xpath('//svg[@class="sa-shot-box"]/g[@data-reactid="{s}"]/line[@class="sa-shot-border"]//@x1'.format(s=s)).extract()[0].replace("%", ""))
                 x2 = float(response.xpath('//svg[@class="sa-shot-box"]/g[@data-reactid="{s}"]/line[@class="sa-shot-border"]//@x2'.format(s=s)).extract()[0].replace("%", ""))
