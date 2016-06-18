@@ -116,42 +116,43 @@ def create_player_seasons():
     cur.execute(create_table)
 
 
-def player_regular_seasons(y):
-    print >>sys.stderr, '[{time}] Scraping regular season year {y}...'.format(
-        time=datetime.datetime.now(), y=y)
+def player_seasons(y, season):
+    print >>sys.stderr, '[{time}] Scraping {s} season year {y}...'.format(
+        time=datetime.datetime.now(), s=season, y=y)
     # regular season field players
     for p in range(30):
-        url = 'http://www.mlssoccer.com/stats/season?sort=desc&order=G&page={num}&season_year={year}&season_type=REG&team=ALL&group=GOALS&op=Search&form_id=mls_stats_individual_form'.format(num=p, year=y)
+        url = 'http://www.mlssoccer.com/stats/season?page={p}&franchise=select&year={year}&season_type={season}&group=goals'.format(
+            p=p, year=y, season=season)
         page = opener.open(url).read()
         soup = BeautifulSoup(page)
         print >>sys.stderr, '[{time}] Running page {n}...'.format(
             time=datetime.datetime.now(), n=p)
-        for row in range(0, 400, 16):
+        for row in range(25):
             try:
-                name = soup.find('tbody').findAll('a')[(row/16)].contents[0]
-                name = name.replace("'", "")
-                club = soup.find('tbody').findAll('td')[row+1].contents[0]
-                pos = soup.find('tbody').findAll('td')[row+2].contents[0]
-                gp = soup.find('tbody').findAll('td')[row+3].contents[0]
-                gs = soup.find('tbody').findAll('td')[row+4].contents[0]
-                mins = soup.find('tbody').findAll('td')[row+5].contents[0]
-                goals = soup.find('tbody').findAll('td')[row+6].contents[0]
-                assists = soup.find('tbody').findAll('td')[row+7].contents[0]
-                shots = soup.find('tbody').findAll('td')[row+8].contents[0]
-                sog = soup.find('tbody').findAll('td')[row+9].contents[0]
-                gwg = soup.find('tbody').findAll('td')[row+10].contents[0]
-                pkg_a = soup.find('tbody').findAll('td')[row+11].contents[0]
-                home_goals = soup.find('tbody').findAll('td')[row+12].contents[0]
-                away_goals = soup.find('tbody').findAll('td')[row+13].contents[0]
-                gp90 = soup.find('tbody').findAll('td')[row+14].contents[0]
-                scoring_pct = soup.find('tbody').findAll('td')[row+15].contents[0]
+                name = soup.find('tbody').findAll('td', attrs={'data-title': 'Player'})[row].find('a').contents[0]
+                club = soup.find('tbody').findAll('td', attrs={'data-title': 'Club'})[row].contents[0]
+                pos = soup.find('tbody').findAll('td', attrs={'data-title': 'POS'})[row].contents[0]
+                gp = soup.find('tbody').findAll('td', attrs={'data-title': 'GP'})[row].contents[0]
+                gs = soup.find('tbody').findAll('td', attrs={'data-title': 'GS'})[row].contents[0]
+                mins = soup.find('tbody').findAll('td', attrs={'data-title': 'MINS'})[row].contents[0]
+                goals = soup.find('tbody').findAll('td', attrs={'data-title': 'G'})[row].contents[0]
+                assists = soup.find('tbody').findAll('td', attrs={'data-title': 'A'})[row].contents[0]
+                shots = soup.find('tbody').findAll('td', attrs={'data-title': 'SHTS'})[row].contents[0]
+                sog = soup.find('tbody').findAll('td', attrs={'data-title': 'SOG'})[row].contents[0]
+                gwg = soup.find('tbody').findAll('td', attrs={'data-title': 'GWG'})[row].contents[0]
+                pkg_a = soup.find('tbody').findAll('td', attrs={'data-title': 'PKG/A'})[row].contents[0]
+                home_goals = soup.find('tbody').findAll('td', attrs={'data-title': 'HmG'})[row].contents[0]
+                away_goals = soup.find('tbody').findAll('td', attrs={'data-title': 'RdG'})[row].contents[0]
+                gp90 = soup.find('tbody').findAll('td', attrs={'data-title': 'G/90min'})[row].contents[0]
+                scoring_pct = soup.find('tbody').findAll('td', attrs={'data-title': 'SC%'})[row].contents[0]
+
                 insert_data = """
                     insert ignore into player_seasons
                         (player, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
                         values (
                             '{player}',
                             {year},
-                            'regular',
+                            '{season}',
                             '{pos}',
                             {gp},
                             {gs},
@@ -167,7 +168,7 @@ def player_regular_seasons(y):
                             {gp90},
                             {scoring_pct}
                             );
-                """.format(player=name, year=y, club=club, pos=pos, gp=gp, gs=gs,
+                """.format(player=name, year=y, season=season, club=club, pos=pos, gp=gp, gs=gs,
                            mins=mins, goals=goals, assists=assists, shots=shots,
                            sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals,
                            away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
@@ -175,106 +176,51 @@ def player_regular_seasons(y):
             except:
                 pass
 
-
-def player_post_seasons(y):
-    print >>sys.stderr, '[{time}] Scraping playoffs year {y}...'.format(
-        time=datetime.datetime.now(), y=y)
-    # playoff field players
-    url = 'http://www.mlssoccer.com/stats/season?season_year={year}&season_type=PS&team=ALL&group=GOALS&op=Search&form_id=mls_stats_individual_form'.format(year=y)
-    page = opener.open(url).read()
-    soup = BeautifulSoup(page)
-    length = len(soup.find('tbody').findAll('td'))
-    for row in range(0, length, 15):
-        name = soup.find('tbody').findAll('a')[row/15].contents[0]
-        name = name.replace("'", "")
-        pos = soup.find('tbody').findAll('td')[row+1].contents[0]
-        gp = soup.find('tbody').findAll('td')[row+2].contents[0]
-        gs = soup.find('tbody').findAll('td')[row+3].contents[0]
-        mins = soup.find('tbody').findAll('td')[row+4].contents[0]
-        goals = soup.find('tbody').findAll('td')[row+5].contents[0]
-        assists = soup.find('tbody').findAll('td')[row+6].contents[0]
-        shots = soup.find('tbody').findAll('td')[row+7].contents[0]
-        sog = soup.find('tbody').findAll('td')[row+8].contents[0]
-        gwg = soup.find('tbody').findAll('td')[row+9].contents[0]
-        pkg_a = soup.find('tbody').findAll('td')[row+10].contents[0]
-        home_goals = soup.find('tbody').findAll('td')[row+11].contents[0]
-        away_goals = soup.find('tbody').findAll('td')[row+12].contents[0]
-        gp90 = soup.find('tbody').findAll('td')[row+13].contents[0]
-        scoring_pct = soup.find('tbody').findAll('td')[row+14].contents[0]
-        insert_data = """
-                insert ignore into player_seasons
-                    (player, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
-                    values (
-                        '{player}',
-                        {year},
-                        'post',
-                        '{pos}',
-                        {gp},
-                        {gs},
-                        {mins},
-                        {goals},
-                        {assists},
-                        {shots},
-                        {sog},
-                        {gwg},
-                        '{pkg_a}',
-                        {home_goals},
-                        {away_goals},
-                        {gp90},
-                        {scoring_pct}
-                        );
-        """.format(player=name, year=y, pos=pos, gp=gp, gs=gs, mins=mins,
-                   goals=goals, assists=assists, shots=shots, sog=sog, gwg=gwg,
-                   pkg_a=pkg_a, home_goals=home_goals, away_goals=away_goals,
-                   gp90=gp90, scoring_pct=scoring_pct)
-        cur.execute(insert_data)
-
-
 def main():
 
     create_club_seasons()
     club_seasons(2014, 'REG')
     club_seasons(2014, 'PS')
-    club_seasons(2013, 'REG')
-    club_seasons(2013, 'PS')
-    club_seasons(2012, 'REG')
-    club_seasons(2012, 'PS')
-    club_seasons(2011, 'REG')
-    club_seasons(2011, 'PS')
-    club_seasons(2010, 'REG')
-    club_seasons(2010, 'PS')
-    club_seasons(2009, 'REG')
-    club_seasons(2009, 'PS')
-    club_seasons(2008, 'REG')
-    club_seasons(2008, 'PS')
-    club_seasons(2007, 'REG')
-    club_seasons(2007, 'PS')
-    club_seasons(2006, 'REG')
-    club_seasons(2006, 'PS')
-    club_seasons(2005, 'REG')
-    club_seasons(2005, 'PS')
-    club_seasons(2004, 'REG')
-    club_seasons(2004, 'PS')
-    club_seasons(2003, 'REG')
-    club_seasons(2003, 'PS')
-    club_seasons(2002, 'REG')
-    club_seasons(2002, 'PS')
-    club_seasons(2001, 'REG')
-    club_seasons(2001, 'PS')
-    club_seasons(2000, 'REG')
-    club_seasons(2000, 'PS')
-    club_seasons(1999, 'REG')
-    club_seasons(1999, 'PS')
-    club_seasons(1998, 'REG')
-    club_seasons(1998, 'PS')
-    club_seasons(1997, 'REG')
-    club_seasons(1997, 'PS')
-    club_seasons(1996, 'REG')
-    club_seasons(1996, 'PS')
+    # club_seasons(2013, 'REG')
+    # club_seasons(2013, 'PS')
+    # club_seasons(2012, 'REG')
+    # club_seasons(2012, 'PS')
+    # club_seasons(2011, 'REG')
+    # club_seasons(2011, 'PS')
+    # club_seasons(2010, 'REG')
+    # club_seasons(2010, 'PS')
+    # club_seasons(2009, 'REG')
+    # club_seasons(2009, 'PS')
+    # club_seasons(2008, 'REG')
+    # club_seasons(2008, 'PS')
+    # club_seasons(2007, 'REG')
+    # club_seasons(2007, 'PS')
+    # club_seasons(2006, 'REG')
+    # club_seasons(2006, 'PS')
+    # club_seasons(2005, 'REG')
+    # club_seasons(2005, 'PS')
+    # club_seasons(2004, 'REG')
+    # club_seasons(2004, 'PS')
+    # club_seasons(2003, 'REG')
+    # club_seasons(2003, 'PS')
+    # club_seasons(2002, 'REG')
+    # club_seasons(2002, 'PS')
+    # club_seasons(2001, 'REG')
+    # club_seasons(2001, 'PS')
+    # club_seasons(2000, 'REG')
+    # club_seasons(2000, 'PS')
+    # club_seasons(1999, 'REG')
+    # club_seasons(1999, 'PS')
+    # club_seasons(1998, 'REG')
+    # club_seasons(1998, 'PS')
+    # club_seasons(1997, 'REG')
+    # club_seasons(1997, 'PS')
+    # club_seasons(1996, 'REG')
+    # club_seasons(1996, 'PS')
     
-    # create_player_seasons()
-    # player_regular_seasons(2014)
-    # player_post_seasons(2014)
+    create_player_seasons()
+    player_seasons(2014, 'REG')
+    player_seasons(2014, 'POS')
     # player_regular_seasons(2013)
     # player_post_seasons(2013)
     # player_regular_seasons(2012)
