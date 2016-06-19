@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 db = MySQLdb.connect(host="localhost", user="ford", db="ss",
-                     passwd="soccerstatistic")
+                     passwd="ss")
 cur = db.cursor()
 
 def absolute_path_to(file_name):

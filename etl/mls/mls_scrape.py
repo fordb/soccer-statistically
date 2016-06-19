@@ -5,7 +5,7 @@ import urllib2
 import datetime
 
 db = MySQLdb.connect(host="localhost", user="ford", db="ss",
-                     passwd="soccerstatistic")
+                     passwd="ss")
 cur = db.cursor()
 
 proxy_support = urllib2.ProxyHandler({})

@@ -3,12 +3,11 @@
 
 from bs4 import BeautifulSoup
 import urllib2
-import csv
 import MySQLdb
 from unidecode import unidecode
 
 db = MySQLdb.connect(host="localhost", user="ford", db="ss",
-                     passwd="soccerstatistic")
+                     passwd="ss")
 cur = db.cursor()
 
 header = {'User-Agent': 'Mozilla/5.0'}
