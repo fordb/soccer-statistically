@@ -9,6 +9,7 @@ class ClubPageItem(scrapy.Item):
 
 class ClubDetailItem(scrapy.Item):
     name = scrapy.Field()
+    year = scrapy.Field()
     gp = scrapy.Field()
     wins = scrapy.Field()
     draws = scrapy.Field()

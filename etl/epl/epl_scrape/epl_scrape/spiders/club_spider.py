@@ -1,10 +1,8 @@
 import scrapy
-import urlparse
-from epl_scrape.items import ClubPageItem
 from epl_scrape.items import ClubDetailItem
 
 
-class EPLClubSpider(scrapy.spider.BaseSpider):
+class EPLClubSpider(scrapy.Spider):
     name = "epl-club"
     allowed_domains = ["premierleague.com"]
     start_urls = [
@@ -12,15 +10,19 @@ class EPLClubSpider(scrapy.spider.BaseSpider):
     ]
     
     def parse(self, response):
-        clubs = response.xpath('//ul/li[re:test(@class, "logo[0-9]+$")]//@href').extract()
+        clubs = response.xpath('//ul/li[re:test(@clubid, "[0-9]+")]//@href').extract()
+        
         for c in clubs:
-            url = "http://www.premierleague.com" + c.replace("profile.overview.html", "profile.statistics.html")
-
-            yield scrapy.http.Request(url, callback=self.parse_club)
+            for y in ['2015-2016', '2014-2015', '2013-2014', '2012-2013', '2011-2012', '2010-2011',
+                      '2009-2010', '2008-2009', '2007-2008', '2006-2007', '2005-2006', '2004-2005',
+                      '2003-2004', '2002-2003', '2001-2002', '2000-2001']:
+                url = "http://www.premierleague.com" + c.replace("profile.overview.html", "profile.statistics.html") + "?playedAt=BOTH&timelineView=BY_SEASON&toSeason={y}".format(y=y)
+                yield scrapy.http.Request(url, callback=self.parse_club)
 
 
     def parse_club(self, response):
-        
+
+        year = response.url[-9:]
         club = ClubDetailItem()
         # overall
         name = response.xpath('//div[@class="overlay"]/h2[@class="noborder"]/text()').extract()
@@ -45,8 +47,9 @@ class EPLClubSpider(scrapy.spider.BaseSpider):
         # disciplinary
         fouls = response.xpath('//li[@name="fouls"]/div[@class="data"]/text()').extract()
         cards = response.xpath('//li[@name="cards"]/div[@class="data"]/text()').extract()
-        
+
         club["name"] = name
+        club["year"] = year
         club["gp"] = played
         club["wins"] = wins
         club["draws"] = draws
