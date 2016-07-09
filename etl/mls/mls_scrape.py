@@ -4,13 +4,6 @@ from bs4 import BeautifulSoup
 import urllib2
 import datetime
 
-db = MySQLdb.connect(host="localhost", user="ford", db="ss",
-                     passwd="ss")
-cur = db.cursor()
-
-proxy_support = urllib2.ProxyHandler({})
-opener = urllib2.build_opener(proxy_support)
-
 player_dict = {}
 club_dict = {}
 league_dict = {'MLS': 1}
@@ -20,7 +13,7 @@ club_counter = 1
 league_counter = 1
 
 
-def create_club_seasons():
+def create_club_seasons(cur):
     cur.execute('drop table if exists club_seasons;')
     create_table = """
         create table club_seasons (
@@ -43,7 +36,9 @@ def create_club_seasons():
     cur.execute(create_table)
 
 
-def club_seasons(y, season):
+def club_seasons(y, season, cur):
+    proxy_support = urllib2.ProxyHandler({})
+    opener = urllib2.build_opener(proxy_support)
     print >>sys.stderr, '[{time}] Scraping {s} season teams year {y}...'.format(
         time=datetime.datetime.now(), s=season, y=y)
     url = 'http://www.mlssoccer.com/stats/team?year={year}&season_type={season}'.format(year=y, season=season)
@@ -90,7 +85,7 @@ def club_seasons(y, season):
         cur.execute(insert_data)
 
 
-def create_player_seasons():
+def create_player_seasons(cur):
     cur.execute('drop table if exists player_seasons;')
     create_table = """
         create table player_seasons (
@@ -116,10 +111,12 @@ def create_player_seasons():
     cur.execute(create_table)
 
 
-def player_seasons(y, season):
+def player_seasons(y, season, cur):
     print >>sys.stderr, '[{time}] Scraping {s} season year {y}...'.format(
         time=datetime.datetime.now(), s=season, y=y)
     # regular season field players
+    proxy_support = urllib2.ProxyHandler({})
+    opener = urllib2.build_opener(proxy_support)
     for p in range(30):
         url = 'http://www.mlssoccer.com/stats/season?page={p}&franchise=select&year={year}&season_type={season}&group=goals'.format(
             p=p, year=y, season=season)
@@ -250,9 +247,7 @@ def main():
     # player_regular_seasons(2000)
     # player_post_seasons(2000)
 
-    db.commit()
-
-    cur.close()
 
 
-main()
+if __name__ == '__main__':
+    main()

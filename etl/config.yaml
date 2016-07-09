@@ -1,0 +1,5 @@
+sql:
+    database: ss
+    user: ford
+    password: ss
+    host: localhost
