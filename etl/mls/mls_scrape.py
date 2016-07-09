@@ -3,6 +3,7 @@ import sys
 from bs4 import BeautifulSoup
 import urllib2
 import datetime
+import time
 
 player_dict = {}
 club_dict = {}
@@ -31,12 +32,13 @@ def create_club_seasons(cur):
             corners int,
             pkg int,
             pka int,
-            unique key team_year (club, year, type));
+            batch char(12),
+            unique key team_year_batch (club, year, type, batch));
     """
     cur.execute(create_table)
 
 
-def club_seasons(y, season, cur):
+def club_seasons(y, season, batch, cur):
     proxy_support = urllib2.ProxyHandler({})
     opener = urllib2.build_opener(proxy_support)
     print >>sys.stderr, '[{time}] Scraping {s} season teams year {y}...'.format(
@@ -62,7 +64,7 @@ def club_seasons(y, season, cur):
 
         insert_data = """
             insert ignore into club_seasons
-                (club, year, type, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka)
+                (club, year, type, gp, goals, assists, shots, sog, fc, fs, offsides, corners, pkg, pka, batch)
                 values (
                     '{club}',
                     {year},
@@ -77,11 +79,12 @@ def club_seasons(y, season, cur):
                     {offsides},
                     {corners},
                     {pkg},
-                    {pka}
+                    {pka},
+                    '{b}'
                     );
         """.format(club=club, type=season, year=y, gp=gp, goals=goals, assists=assists, shots=shots,
                    sog=sog, fc=fc, fs=fs, offsides=offsides, corners=corners,
-                   pkg=pkg, pka=pka)
+                   pkg=pkg, pka=pka, b=batch)
         cur.execute(insert_data)
 
 
@@ -106,12 +109,13 @@ def create_player_seasons(cur):
             away_goals int,
             gp_90 decimal(4,2),
             scoring_pct decimal(4,1),
-            unique key player_year (player, year, type));
+            batch char(12),
+            unique key player_year_batch (player, year, type, batch));
     """
     cur.execute(create_table)
 
 
-def player_seasons(y, season, cur):
+def player_seasons(y, season, batch, cur):
     print >>sys.stderr, '[{time}] Scraping {s} season year {y}...'.format(
         time=datetime.datetime.now(), s=season, y=y)
     # regular season field players
@@ -145,7 +149,7 @@ def player_seasons(y, season, cur):
 
                 insert_data = """
                     insert ignore into player_seasons
-                        (player, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct)
+                        (player, year, type, position, gp, gs, mins, goals, assists, shots, sog, gwg, pkg_a, home_goals, away_goals, gp_90, scoring_pct, batch)
                         values (
                             '{player}',
                             {year},
@@ -163,89 +167,26 @@ def player_seasons(y, season, cur):
                             {home_goals},
                             {away_goals},
                             {gp90},
-                            {scoring_pct}
+                            {scoring_pct},
+                            '{b}'
                             );
                 """.format(player=name, year=y, season=season, club=club, pos=pos, gp=gp, gs=gs,
                            mins=mins, goals=goals, assists=assists, shots=shots,
                            sog=sog, gwg=gwg, pkg_a=pkg_a, home_goals=home_goals,
-                           away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct)
+                           away_goals=away_goals, gp90=gp90, scoring_pct=scoring_pct, b=batch)
                 cur.execute(insert_data)
             except:
                 pass
 
 def main():
-
+    batch = time.strftime("%Y%m%d%H%M")
     create_club_seasons()
-    club_seasons(2014, 'REG')
-    club_seasons(2014, 'PS')
-    # club_seasons(2013, 'REG')
-    # club_seasons(2013, 'PS')
-    # club_seasons(2012, 'REG')
-    # club_seasons(2012, 'PS')
-    # club_seasons(2011, 'REG')
-    # club_seasons(2011, 'PS')
-    # club_seasons(2010, 'REG')
-    # club_seasons(2010, 'PS')
-    # club_seasons(2009, 'REG')
-    # club_seasons(2009, 'PS')
-    # club_seasons(2008, 'REG')
-    # club_seasons(2008, 'PS')
-    # club_seasons(2007, 'REG')
-    # club_seasons(2007, 'PS')
-    # club_seasons(2006, 'REG')
-    # club_seasons(2006, 'PS')
-    # club_seasons(2005, 'REG')
-    # club_seasons(2005, 'PS')
-    # club_seasons(2004, 'REG')
-    # club_seasons(2004, 'PS')
-    # club_seasons(2003, 'REG')
-    # club_seasons(2003, 'PS')
-    # club_seasons(2002, 'REG')
-    # club_seasons(2002, 'PS')
-    # club_seasons(2001, 'REG')
-    # club_seasons(2001, 'PS')
-    # club_seasons(2000, 'REG')
-    # club_seasons(2000, 'PS')
-    # club_seasons(1999, 'REG')
-    # club_seasons(1999, 'PS')
-    # club_seasons(1998, 'REG')
-    # club_seasons(1998, 'PS')
-    # club_seasons(1997, 'REG')
-    # club_seasons(1997, 'PS')
-    # club_seasons(1996, 'REG')
-    # club_seasons(1996, 'PS')
+    club_seasons(2014, 'REG', batch)
+    club_seasons(2014, 'PS', batch)
     
     create_player_seasons()
-    player_seasons(2014, 'REG')
-    player_seasons(2014, 'POS')
-    # player_regular_seasons(2013)
-    # player_post_seasons(2013)
-    # player_regular_seasons(2012)
-    # player_post_seasons(2012)
-    # player_regular_seasons(2011)
-    # player_post_seasons(2011)
-    # player_regular_seasons(2010)
-    # player_post_seasons(2010)
-    # player_regular_seasons(2009)
-    # player_post_seasons(2009)
-    # player_regular_seasons(2008)
-    # player_post_seasons(2008)
-    # player_regular_seasons(2007)
-    # player_post_seasons(2007)
-    # player_regular_seasons(2006)
-    # player_post_seasons(2006)
-    # player_regular_seasons(2005)
-    # player_post_seasons(2005)
-    # player_regular_seasons(2004)
-    # player_post_seasons(2004)
-    # player_regular_seasons(2003)
-    # player_post_seasons(2003)
-    # player_regular_seasons(2002)
-    # player_post_seasons(2002)
-    # player_regular_seasons(2001)
-    # player_post_seasons(2001)
-    # player_regular_seasons(2000)
-    # player_post_seasons(2000)
+    player_seasons(2014, 'REG', batch)
+    player_seasons(2014, 'POS', batch)
 
 
 
