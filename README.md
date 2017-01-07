@@ -1,3 +1,13 @@
+# Installation Instructions
+Install `virtualenv`
+
+`source venv/bin/activate`
+
+Install:
+
+`scrapy`
+
+
 # MySQL soccer database
 
 ## Installation Instructions
