@@ -2,8 +2,8 @@
 
 from scrapy.exceptions import DropItem
 
-class DuplicatesPipeline(object):
 
+class DuplicatesPipeline(object):
     def __init__(self):
         self.ids_seen = set()
 

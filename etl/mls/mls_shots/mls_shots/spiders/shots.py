@@ -2,34 +2,83 @@ import scrapy
 from mls_shots.items import GameShotsItem
 
 game_id = 0
+year = 2016
 
 
 class ShotSpider(scrapy.Spider):
     name = 'shots'
     allowed_domains = ['matchcenter.mlssoccer.com']
-    start_urls = ['http://www.mlssoccer.com/schedule?month=3&year=2014&club=select&club_options=9']
+    start_urls = ['http://www.mlssoccer.com/schedule?'
+                  'month=3&year={y}&club=select&club_options=9'.format(y=year),
+                  'http://www.mlssoccer.com/schedule?'
+                  'month=4&year={y}&club=select&club_options=9'.format(y=year),
+                  'http://www.mlssoccer.com/schedule?'
+                  'month=5&year={y}&club=select&club_options=9'.format(y=year),
+                  'http://www.mlssoccer.com/schedule?'
+                  'month=6&year={y}&club=select&club_options=9'.format(y=year),
+                  'http://www.mlssoccer.com/schedule?'
+                  'month=7&year={y}&club=select&club_options=9'.format(y=year),
+                  'http://www.mlssoccer.com/schedule?'
+                  'month=8&year={y}&club=select&club_options=9'.format(y=year),
+                  'http://www.mlssoccer.com/schedule?'
+                  'month=9&year={y}&club=select&club_options=9'.format(y=year),
+                  'http://www.mlssoccer.com/schedule?'
+                  'month=10&year={y}&club=select&club_options=9'.format(y=year),
+                  'http://www.mlssoccer.com/schedule?'
+                  'month=10&year={y}&club=select&club_options=8'.format(y=year),
+                  'http://www.mlssoccer.com/schedule?'
+                  'month=11&year={y}&club=select&club_options=8'.format(y=year)]
 
     def parse(self, response):
         global game_id
-        links =  [l + '/stats' for l in response.xpath('//div[@class="field-item even"]//@href').extract() if 'matchcenter' in l]
+        # find each matchcenter link
+        links = [l + '/stats' for l in response.xpath('//div[@class='
+                                                      '"field-item even"]'
+                                                      '//@href').extract()
+                 if 'matchcenter' in l]
+        # for each match, call the parse_game function
         for l in links:
-            yield scrapy.http.Request(l, meta={'game_id': game_id}, callback=self.parse_game)
+            yield scrapy.http.Request(l, meta={'game_id': game_id},
+                                      callback=self.parse_game)
             game_id += 1
 
     def parse_game(self, response):
-        home, away = response.xpath('//div[@class="sb-club-name"]/span[@class="sb-club-name-short"]/text()').extract()
+        home, away = response.xpath('//div[@class="sb-club-name"]/span'
+                                    '[@class="sb-club-name-short"]/'
+                                    'text()').extract()
         game = GameShotsItem()
-        shots = [s for s in response.xpath('//svg[@class="sa-shot-box"]/g//@data-reactid').extract()]
+        shots = set([s for s in response.xpath('//svg[@class="sa-shot-box"]'
+                                               '/g//@data-reactid').extract()])
         for s in shots:
-            print(s)
             try:
-                x1 = float(response.xpath('//svg[@class="sa-shot-box"]/g[@data-reactid="{s}"]/line[@class="sa-shot-border"]//@x1'.format(s=s)).extract()[0].replace("%", ""))
-                x2 = float(response.xpath('//svg[@class="sa-shot-box"]/g[@data-reactid="{s}"]/line[@class="sa-shot-border"]//@x2'.format(s=s)).extract()[0].replace("%", ""))
-                y1 = float(response.xpath('//svg[@class="sa-shot-box"]/g[@data-reactid="{s}"]/line[@class="sa-shot-border"]//@y1'.format(s=s)).extract()[0].replace("%", ""))
-                y2 = float(response.xpath('//svg[@class="sa-shot-box"]/g[@data-reactid="{s}"]/line[@class="sa-shot-border"]//@x1'.format(s=s)).extract()[0].replace("%", ""))
+                x1 = float(response.xpath('//svg[@class="sa-shot-box"]/'
+                                          'g[@data-reactid="{s}"]/line'
+                                          '[@class="sa-shot-border"]//'
+                                          '@x1'.format(s=s)).
+                           extract()[0].replace("%", ""))
+                x2 = float(response.xpath('//svg[@class="sa-shot-box"]/'
+                                          'g[@data-reactid="{s}"]/line'
+                                          '[@class="sa-shot-border"]//'
+                                          '@x2'.format(s=s)).
+                           extract()[0].replace("%", ""))
+                y1 = float(response.xpath('//svg[@class="sa-shot-box"]/'
+                                          'g[@data-reactid="{s}"]/line'
+                                          '[@class="sa-shot-border"]//'
+                                          '@y1'.format(s=s)).
+                           extract()[0].replace("%", ""))
+                y2 = float(response.xpath('//svg[@class="sa-shot-box"]/'
+                                          'g[@data-reactid="{s}"]/line'
+                                          '[@class="sa-shot-border"]//'
+                                          '@x1'.format(s=s)).
+                           extract()[0].replace("%", ""))
                 team = None
-                if len(response.xpath('//svg[@class="sa-shot-box"]/g[@data-reactid="{s}"]/line//@class'.format(s=s)).extract()) > 0:
-                    shot_type = response.xpath('//svg[@class="sa-shot-box"]/g[@data-reactid="{s}"]/line//@class'.format(s=s)).extract()[1]
+                if len(response.xpath('//svg[@class="sa-shot-box"]/'
+                                      'g[@data-reactid="{s}"]/line'
+                                      '//@class'.format(s=s)).extract()) > 0:
+                    shot_type = response.xpath('//svg[@class="sa-shot-box"]/g'
+                                               '[@data-reactid="{s}"]/line//'
+                                               '@class'.
+                                               format(s=s)).extract()[1]
                     if 'home' in shot_type:
                         team = home
                     elif 'away' in shot_type:
@@ -37,7 +86,10 @@ class ShotSpider(scrapy.Spider):
                     else:
                         team = '???'
                     try:
-                        goal = response.xpath('//svg[@class="sa-shot-box"]/g[@data-reactid="{s}"]/circle//@class'.format(s=s)).extract()[0]
+                        goal = response.xpath('//svg[@class="sa-shot-box"]/g'
+                                              '[@data-reactid="{s}"]/circle//'
+                                              '@class'.
+                                              format(s=s)).extract()[0]
                     except IndexError:
                         goal = 'None'
                         
@@ -50,7 +102,7 @@ class ShotSpider(scrapy.Spider):
                     elif "goal" in goal:
                         outcome = 'goal'
                     else:
-                        outcome = '????'
+                        outcome = None
                     
                     g_id = response.meta['game_id']
                     game["x1"] = x1

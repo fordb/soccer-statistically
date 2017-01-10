@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 
+
 class GameShotsItem(scrapy.Item):
     x1 = scrapy.Field()
     x2 = scrapy.Field()

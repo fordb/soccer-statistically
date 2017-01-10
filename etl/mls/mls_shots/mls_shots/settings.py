@@ -12,10 +12,4 @@ BOT_NAME = 'mls_shots'
 
 SPIDER_MODULES = ['mls_shots.spiders']
 NEWSPIDER_MODULE = 'mls_shots.spiders'
-ITEM_PIPELINES = {
-    'mls_shots.pipelines.DuplicatesPipeline': 100,
-}
 
-
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'mls_shots (+http://www.yourdomain.com)'
