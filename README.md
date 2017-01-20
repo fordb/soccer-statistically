@@ -2,6 +2,24 @@
 
 All the code for the [blog](http://www.soccerstatistically.com/) lives here
 
+### Installation
+
+I'd recommend creating a virtual environment, then installing the necessary packages there:
+
+```
+pip install virtualenv
+virtualenv ss
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+To deactivate, then reactivate:
+
+```
+deactivate
+source ss/bin/activate
+```
+
 ##
 
 ### Blog Posts
