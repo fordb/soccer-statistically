@@ -1,24 +1,31 @@
-# Installation Instructions
-Install `virtualenv`
+![tag](http://static1.squarespace.com/static/55383305e4b01eb10801ac14/t/55384d34e4b01ab27b44837d/1434983076244/?format=1500w)
 
-`source venv/bin/activate`
+All the code for the [blog](http://www.soccerstatistically.com/) lives here
 
-Install:
+##
 
-`scrapy`
+### Blog Posts
 
+##### MLS Shots
 
-# MySQL soccer database
+* Visualizing 5 seasons of MLS shots
+* Coming soon
+* ```posts/mls_shots/```
 
-## Installation Instructions
-Follow this link: http://dev.mysql.com/doc/refman/5.5/en/getting-mysql.html
+##### [Valuing the MLS SuperDraft](http://www.soccerstatistically.com/blog/2015/6/18/valuing-the-mls-superdraft)
 
-## Connection instructions
-Once MySQL is installed, connect to the database with `mysql -u soccer_stat -p soccer_stat`. The password is `mcfc`
+* Determining the value of MLS draft picks
+* Originally posted 6/21/2015
+* ```posts/mls_draft/```
 
-To Do:
-- ~~Get data for all draft years (missing some in the middle)~~
-- ~~Scrape every round for each year (not just 1st round)~~
-- ~~Clean up mls_scrape.py code-- can remove a bunch of tables~~
-- ~~Do some data QA~~
-- ~~clean up position names~~
+##### [World Cup Continent Head to Head](http://www.soccerstatistically.com/blog/2014/7/11/world-cup-performance-by-continent-lots-of-graphs.html)
+
+* Head to head results by continent for World Cup games
+* Originally posted on 7/11/2014
+* ```posts/wc-continent-headtohead/```
+
+##### [Underdogs and Inefficiencies](http://www.soccerstatistically.com/blog/2014/5/27/underdogs-and-inefficiencies.html)
+
+* Evaluating the validity of odds makers for significant underdogs
+* Originally posted on 5/27/2014
+* ```posts/underdogs-and-inefficiencies/```
